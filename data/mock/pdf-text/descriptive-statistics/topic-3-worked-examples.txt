@@ -1,0 +1,3 @@
+Worked Example 1: compute expected value and variance for a discrete random variable.
+Worked Example 2: standardize values with z-scores and interpret tail probabilities.
+Exam preparation: identify assumptions before selecting a probability model.

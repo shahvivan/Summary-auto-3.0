@@ -1,0 +1,127 @@
+{
+  "runId": "1e094054-3a7d-4e81-9d38-61a6f1bd3614",
+  "sessionId": "2026-03-02-descriptive-statistics-probability-evt-1",
+  "courseKey": "descriptive-statistics-probability",
+  "resolver": {
+    "selectedSectionId": "sec-topic-3",
+    "selectedSectionTitle": "Topic 3 - Probability Distributions",
+    "pdfLinks": [
+      {
+        "id": "res-t3-pdf-1",
+        "title": "Topic 3 Core Notes",
+        "url": "mock://descriptive-statistics/topic-3-core-notes.pdf",
+        "type": "pdf"
+      },
+      {
+        "id": "res-t3-pdf-2",
+        "title": "Topic 3 Worked Examples",
+        "url": "mock://descriptive-statistics/topic-3-worked-examples.pdf",
+        "type": "pdf"
+      }
+    ],
+    "debug": {
+      "allSections": [
+        {
+          "sectionId": "sec-topic-3",
+          "sectionTitle": "Topic 3 - Probability Distributions",
+          "score": 13.6,
+          "reasons": [
+            "token:topic",
+            "token:topic",
+            "academicMarker",
+            "topicExact",
+            "orderBoost:1.65",
+            "topicRecency:3",
+            "resourceDensity:2"
+          ],
+          "pdfCount": 2
+        },
+        {
+          "sectionId": "sec-topic-4",
+          "sectionTitle": "Topic 4 - Measures of Dispersion",
+          "score": 7.5,
+          "reasons": [
+            "token:topic",
+            "token:topic",
+            "academicMarker",
+            "orderBoost:2.20",
+            "topicRecency:4",
+            "resourceDensity:1"
+          ],
+          "pdfCount": 1
+        },
+        {
+          "sectionId": "sec-topic-2",
+          "sectionTitle": "Topic 2 - Data Visualization",
+          "score": 5.9,
+          "reasons": [
+            "token:topic",
+            "token:topic",
+            "academicMarker",
+            "orderBoost:1.10",
+            "topicRecency:2",
+            "resourceDensity:1"
+          ],
+          "pdfCount": 1
+        },
+        {
+          "sectionId": "sec-topic-1",
+          "sectionTitle": "Topic 1 - Data Types and Scales",
+          "score": 5.1,
+          "reasons": [
+            "token:topic",
+            "token:topic",
+            "academicMarker",
+            "orderBoost:0.55",
+            "topicRecency:1",
+            "resourceDensity:1"
+          ],
+          "pdfCount": 1
+        },
+        {
+          "sectionId": "sec-intro",
+          "sectionTitle": "Introduction and Syllabus",
+          "score": 0,
+          "reasons": [
+            "orderBoost:0.00"
+          ],
+          "pdfCount": 0
+        }
+      ],
+      "overrideApplied": "automatic",
+      "confidenceScore": 1,
+      "selectedReason": "token:topic, token:topic, academicMarker, topicExact, orderBoost:1.65, topicRecency:3, resourceDensity:2",
+      "navigationSteps": [
+        "Mock resolver mode enabled"
+      ],
+      "domStats": {
+        "sectionCount": 5,
+        "resourceCount": 8,
+        "pdfResources": 5,
+        "pptResources": 0
+      },
+      "pdfFilterStats": {
+        "inputResources": 3,
+        "pdfResources": 2,
+        "pptResources": 0,
+        "selectedResources": 2
+      }
+    }
+  },
+  "providerTrace": {
+    "requestedProvider": "auto",
+    "finalProvider": "deterministic",
+    "attempts": [
+      {
+        "provider": "deterministic",
+        "ok": true
+      }
+    ]
+  },
+  "schemaValidationTrace": {
+    "attempts": 1,
+    "repairedAttempts": 0,
+    "providerPayloadErrors": []
+  },
+  "writtenAt": "2026-03-02T22:12:22.845Z"
+}

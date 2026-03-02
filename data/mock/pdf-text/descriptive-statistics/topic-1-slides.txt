@@ -1,0 +1,2 @@
+Topic 1 introduces data types, measurement scales, and examples used in business analytics.
+Definitions include nominal, ordinal, interval, and ratio variables with practical interpretation.

@@ -1,0 +1,107 @@
+{
+  "runId": "ca242fbe-ac4c-4524-bc12-d98b4af1af88",
+  "sessionId": "2026-03-02-linear-algebra-evt-2",
+  "courseKey": "linear-algebra",
+  "resolver": {
+    "selectedSectionId": "la-week-5",
+    "selectedSectionTitle": "Week 5 - Vectors and Subspaces",
+    "pdfLinks": [
+      {
+        "id": "la-w5-pdf-1",
+        "title": "Week 5 Theory",
+        "url": "mock://linear-algebra/week-5-theory.pdf",
+        "type": "pdf"
+      },
+      {
+        "id": "la-w5-pdf-2",
+        "title": "Week 5 Problem Set",
+        "url": "mock://linear-algebra/week-5-problem-set.pdf",
+        "type": "pdf"
+      }
+    ],
+    "debug": {
+      "allSections": [
+        {
+          "sectionId": "la-week-5",
+          "sectionTitle": "Week 5 - Vectors and Subspaces",
+          "score": 21.7,
+          "reasons": [
+            "token:week",
+            "token:vectors",
+            "token:and",
+            "token:subspaces",
+            "token:week",
+            "academicMarker",
+            "topicExact",
+            "historicalAnchor",
+            "orderBoost:1.10",
+            "topicRecency:5",
+            "resourceDensity:3"
+          ],
+          "pdfCount": 3
+        },
+        {
+          "sectionId": "la-week-6",
+          "sectionTitle": "Week 6 - Eigenvalues",
+          "score": 7.1,
+          "reasons": [
+            "token:week",
+            "token:week",
+            "academicMarker",
+            "orderBoost:2.20",
+            "topicRecency:6"
+          ],
+          "pdfCount": 0
+        },
+        {
+          "sectionId": "la-week-4",
+          "sectionTitle": "Week 4 - Matrix Transformations",
+          "score": 5.3,
+          "reasons": [
+            "token:week",
+            "token:week",
+            "academicMarker",
+            "orderBoost:0.00",
+            "topicRecency:4",
+            "resourceDensity:1"
+          ],
+          "pdfCount": 1
+        }
+      ],
+      "overrideApplied": "anchor",
+      "confidenceScore": 1,
+      "selectedReason": "historical anchor",
+      "navigationSteps": [
+        "Mock resolver mode enabled"
+      ],
+      "domStats": {
+        "sectionCount": 3,
+        "resourceCount": 5,
+        "pdfResources": 3,
+        "pptResources": 1
+      },
+      "pdfFilterStats": {
+        "inputResources": 3,
+        "pdfResources": 2,
+        "pptResources": 1,
+        "selectedResources": 2
+      }
+    }
+  },
+  "providerTrace": {
+    "requestedProvider": "gemini",
+    "finalProvider": "deterministic",
+    "attempts": [
+      {
+        "provider": "deterministic",
+        "ok": true
+      }
+    ]
+  },
+  "schemaValidationTrace": {
+    "attempts": 1,
+    "repairedAttempts": 0,
+    "providerPayloadErrors": []
+  },
+  "writtenAt": "2026-03-02T22:27:20.356Z"
+}

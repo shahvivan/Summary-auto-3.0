@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings | LecturePrep</title>
+    <link rel="stylesheet" href="/common.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark"></span>
+          <span class="brand-name">LecturePrep</span>
+        </div>
+        <nav class="sidebar-nav">
+          <a class="nav-link" href="/"><span>Today</span></a>
+          <a class="nav-link" href="/history"><span>History</span></a>
+          <a class="nav-link active" href="/settings"><span>Settings</span></a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="main-inner">
+          <section class="panel" style="max-width: 680px">
+            <h1 class="page-title" style="font-size: 24px; margin-bottom: 8px">Settings</h1>
+            <div class="page-sub">Environment-backed settings for resolver, model routing, and local storage paths.</div>
+
+            <div class="divider" style="margin-top: 18px"></div>
+
+            <p class="section-kicker">Local Paths</p>
+            <div class="stack">
+              <div class="field">
+                <label>Downloads Directory</label>
+                <input value="data/storage/cache" readonly />
+              </div>
+              <div class="field">
+                <label>Database Location</label>
+                <input value="data/storage/app.db" readonly />
+              </div>
+            </div>
+
+            <div class="divider"></div>
+            <p class="section-kicker">Language Model</p>
+            <div class="stack">
+              <div class="field">
+                <label>Default Provider</label>
+                <input value="SUMMARY_PROVIDER_DEFAULT (auto|gemini|chatpdf|deterministic)" readonly />
+              </div>
+              <div class="field">
+                <label>Gemini</label>
+                <input value="GEMINI_API_KEY + GEMINI_MODEL" readonly />
+              </div>
+              <div class="field">
+                <label>ChatPDF</label>
+                <input value="CHATPDF_API_KEY + CHATPDF_SOURCE_ID" readonly />
+              </div>
+            </div>
+
+            <div class="divider"></div>
+            <p class="section-kicker">Moodle</p>
+            <div class="stack">
+              <div class="field">
+                <label>Base URL</label>
+                <input value="MOODLE_BASE_URL" readonly />
+              </div>
+              <div class="field">
+                <label>Persistent Auth Profile</label>
+                <input value="PLAYWRIGHT_USER_DATA_DIR" readonly />
+              </div>
+              <div class="field">
+                <label>Calendar</label>
+                <input value="CALENDAR_USE_ICS + CALENDAR_ICS_URL" readonly />
+              </div>
+            </div>
+
+            <div class="divider"></div>
+            <a href="/" class="btn btn-primary">Back to Today</a>
+          </section>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

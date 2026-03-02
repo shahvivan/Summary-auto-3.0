@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Session Detail | LecturePrep</title>
+    <link rel="stylesheet" href="/common.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="topProgress" class="top-progress"></div>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark"></span>
+          <span class="brand-name">LecturePrep</span>
+        </div>
+        <nav class="sidebar-nav">
+          <a class="nav-link active" href="/"><span>Today</span></a>
+          <a class="nav-link" href="/history"><span>History</span></a>
+          <a class="nav-link" href="/settings"><span>Settings</span></a>
+        </nav>
+        <div class="sidebar-status">
+          <div class="status-line">
+            <span id="systemDot" class="status-dot"></span>
+            <span id="systemStatusText">Idle</span>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="main-inner stack">
+          <section id="errorBanner" class="error-banner hidden">
+            <div style="font-size: 14px; font-weight: 700; color: var(--danger)">Pipeline failed</div>
+            <div id="errorBannerMsg" class="small" style="color: var(--text-secondary)"></div>
+            <div style="display: flex; gap: 8px; margin-top: 10px">
+              <button id="retryBtn" class="btn btn-danger">Retry</button>
+              <button id="openDebugBtn" class="btn btn-ghost">Show Technical Details</button>
+            </div>
+            <pre id="technicalError" class="code-view hidden"></pre>
+          </section>
+
+          <section class="panel">
+            <a href="/" class="small muted">← Back to Today</a>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-top: 10px">
+              <div>
+                <h1 id="sessionTitle" style="margin: 0; font-size: 22px; letter-spacing: -0.02em"></h1>
+                <div id="sessionSubtitle" class="small muted"></div>
+                <div id="sessionId" class="mono muted" style="margin-top: 6px"></div>
+              </div>
+              <div id="sessionBadge"></div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px">
+              <button id="rerunBtn" class="btn btn-primary">Re-run</button>
+              <button id="copyBriefBtn" class="btn btn-secondary">Copy Brief</button>
+              <button id="exportBriefBtn" class="btn btn-ghost">Export .md</button>
+            </div>
+          </section>
+
+          <div id="overridePill" class="override-pill">⚡ Override Active</div>
+
+          <section class="session-layout">
+            <div class="stack">
+              <article class="panel">
+                <p class="section-kicker">Pipeline</p>
+                <div id="pipelineRows" class="pipeline-full"></div>
+              </article>
+
+              <article class="panel">
+                <div class="brief-toolbar">
+                  <p class="section-kicker" style="margin: 0">AI Brief</p>
+                  <div style="display: flex; gap: 8px; align-items: center">
+                    <div class="tabs">
+                      <button class="tab active" data-layer="1">1</button>
+                      <button class="tab" data-layer="2">2</button>
+                      <button class="tab" data-layer="3">3</button>
+                    </div>
+                  </div>
+                </div>
+                <div id="briefBody" class="markdown"></div>
+              </article>
+
+              <article class="panel">
+                <div style="display: flex; justify-content: space-between; gap: 8px; align-items: center">
+                  <p class="section-kicker" style="margin: 0">Sources</p>
+                  <label class="small muted" style="display: flex; gap: 6px; align-items: center">
+                    <input id="sourcesPdfOnly" type="checkbox" checked />
+                    Show only PDFs
+                  </label>
+                </div>
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>File Name</th>
+                        <th>Status</th>
+                        <th>Cached</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="sourcesBody"></tbody>
+                  </table>
+                </div>
+              </article>
+            </div>
+
+            <div class="stack">
+              <article class="panel">
+                <p class="section-kicker">Resolver Result</p>
+                <div id="resolverSectionTitle" style="font-weight: 600"></div>
+                <div id="resolverSectionId" class="mono muted"></div>
+                <div class="confidence" style="margin-top: 10px">
+                  <div style="display: flex; justify-content: space-between" class="small">
+                    <span>Confidence</span>
+                    <span id="confidenceLabel"></span>
+                  </div>
+                  <div class="confidence-bar">
+                    <div id="confidenceFill" class="confidence-fill"></div>
+                  </div>
+                </div>
+                <div id="resolverOverride" class="small muted" style="margin-top: 8px"></div>
+              </article>
+
+              <article id="overridesCard" class="panel">
+                <p class="section-kicker">Overrides</p>
+                <form id="overridesForm" class="stack">
+                  <div class="field">
+                    <label for="ovSectionId">1. Section ID</label>
+                    <input id="ovSectionId" name="sectionId" />
+                    <div class="small muted">Highest priority</div>
+                  </div>
+                  <div class="field">
+                    <label for="ovTopicNumber">2. Topic Number</label>
+                    <input id="ovTopicNumber" name="topicNumber" type="number" min="1" />
+                    <div class="small muted">Used if no section ID</div>
+                  </div>
+                  <div class="field">
+                    <label for="ovContains">3. Keyword Contains</label>
+                    <input id="ovContains" name="contains" />
+                    <div class="small muted">Used if no section ID/topic</div>
+                  </div>
+                  <div class="field">
+                    <label for="ovProvider">Provider</label>
+                    <select id="ovProvider" name="provider">
+                      <option value="auto">auto</option>
+                      <option value="gemini">gemini</option>
+                      <option value="chatpdf">chatpdf</option>
+                      <option value="deterministic">deterministic</option>
+                    </select>
+                  </div>
+                  <label class="small muted" style="display: flex; gap: 8px; align-items: center">
+                    <input id="ovPersistAnchor" type="checkbox" checked />
+                    Persist as anchor
+                  </label>
+                  <div style="display: flex; gap: 8px; flex-wrap: wrap">
+                    <button type="submit" class="btn btn-primary">Apply Override</button>
+                    <button type="button" id="clearOverridesBtn" class="btn btn-ghost">Clear All</button>
+                  </div>
+                </form>
+              </article>
+
+              <article class="panel">
+                <div class="advanced-toggle">
+                  <p class="section-kicker" style="margin: 0">Advanced Debug</p>
+                  <button id="toggleDebugBtn" class="btn btn-ghost">Expand</button>
+                </div>
+                <div id="debugPanel" class="hidden">
+                  <div class="field">
+                    <label for="allSectionsSearch">All Sections</label>
+                    <input id="allSectionsSearch" placeholder="Search sections..." />
+                  </div>
+                  <div id="allSectionsList" class="code-view"></div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px">
+                    <span class="small">Raw resolution.json</span>
+                    <button id="copyDebugBtn" class="btn btn-ghost">Copy</button>
+                  </div>
+                  <pre id="debugJson" class="code-view"></pre>
+                </div>
+              </article>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const PIPELINE_STEPS = [
+        { id: "scan", title: "Scanning" },
+        { id: "resolve", title: "Resolving" },
+        { id: "download", title: "Downloading" },
+        { id: "parse", title: "Parsing" },
+        { id: "summarize", title: "Summarizing" },
+        { id: "done", title: "Done" },
+      ];
+
+      const state = {
+        sessionId: null,
+        detail: null,
+        debug: null,
+        layer: "1",
+      };
+
+      function escapeHtml(input) {
+        return String(input)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      async function jsonFetch(url, options) {
+        const res = await fetch(url, options);
+        const body = await res.json().catch(() => ({ ok: false, message: "Invalid JSON response" }));
+        if (!res.ok || body.ok === false) {
+          throw new Error(body.message || `Request failed (${res.status})`);
+        }
+        return body;
+      }
+
+      function statusBadge(status) {
+        const value = status === "failed" ? "error" : status;
+        return `<span class="status-badge status-${escapeHtml(value)}"><span class="dot"></span>${escapeHtml(value)}</span>`;
+      }
+
+      function sessionIdFromPath() {
+        const match = window.location.pathname.match(/\/session\/([^/]+)/);
+        return match ? decodeURIComponent(match[1]) : null;
+      }
+
+      function stageToIndex(stage, status) {
+        if (status === "done") return 5;
+        if (stage === "resolving") return 1;
+        if (stage === "downloading") return 2;
+        if (stage === "parsing") return 3;
+        if (stage === "summarizing") return 4;
+        if (stage === "writing") return 5;
+        return 0;
+      }
+
+      function setSystemStatus(run) {
+        const dot = document.getElementById("systemDot");
+        const text = document.getElementById("systemStatusText");
+        const progress = document.getElementById("topProgress");
+        dot.className = "status-dot";
+        progress.classList.remove("running");
+
+        if (!run) {
+          text.textContent = "Idle";
+          return;
+        }
+
+        if (run.status === "running") {
+          dot.classList.add("running");
+          text.textContent = `Running - ${run.stage}`;
+          progress.classList.add("running");
+        } else if (run.status === "failed") {
+          dot.classList.add("error");
+          text.textContent = `Error - ${run.stage}`;
+        } else {
+          text.textContent = "Idle";
+        }
+      }
+
+      function renderHeader(detail) {
+        document.getElementById("sessionTitle").textContent = `${detail.session.courseName} · ${detail.session.sessionLabel || "Session"} · ${detail.session.eventTitle}`;
+        document.getElementById("sessionSubtitle").textContent = `${detail.session.date}`;
+        document.getElementById("sessionId").textContent = `Session ID: ${detail.session.sessionId}`;
+        document.getElementById("sessionBadge").innerHTML = detail.run ? statusBadge(detail.run.status) : statusBadge("queued");
+        document.getElementById("ovProvider").value = detail.run?.providerTrace?.requestedProvider || "auto";
+
+        const override = detail.run?.override;
+        const overrideActive = Boolean(override?.sectionId || override?.topicNumber || override?.contains);
+        const overridePill = document.getElementById("overridePill");
+        if (overrideActive) {
+          const activeValue = override.sectionId
+            ? `sectionId=${override.sectionId}`
+            : override.topicNumber
+              ? `topic=${override.topicNumber}`
+              : `contains=${override.contains}`;
+          overridePill.textContent = `⚡ Override Active: ${activeValue}`;
+          overridePill.classList.add("show");
+          document.getElementById("overridesCard").style.background = "#FFFBEB";
+          document.getElementById("overridesCard").style.borderLeft = "3px solid #FCD34D";
+        } else {
+          overridePill.classList.remove("show");
+        }
+      }
+
+      function renderError(detail) {
+        const banner = document.getElementById("errorBanner");
+        if (!detail.run || detail.run.status !== "failed") {
+          banner.classList.add("hidden");
+          return;
+        }
+        banner.classList.remove("hidden");
+        document.getElementById("errorBannerMsg").textContent = detail.run.error || detail.run.message || "Unknown error";
+        document.getElementById("technicalError").textContent = detail.run.error || "";
+      }
+
+      function renderPipeline(detail) {
+        const rows = document.getElementById("pipelineRows");
+        const stageIndex = stageToIndex(detail.run?.stage || "queued", detail.run?.status || "queued");
+        const logs = {
+          scan: state.debug?.resolver?.debug?.navigationSteps || [],
+          resolve: [state.debug?.resolver?.debug?.selectedReason || "Resolver completed"],
+          download: detail.materials.map((item) => `Material ready: ${item.title}`),
+          parse: [`Chunks generated: ${detail.summary ? detail.summary.layer3DetailedNotes.length : 0}`],
+          summarize: [
+            detail.run?.providerTrace
+              ? `Provider: ${detail.run.providerTrace.finalProvider}`
+              : "Summary generation pending",
+          ],
+          done: detail.run?.status === "done" ? ["Run completed"] : [],
+        };
+
+        rows.innerHTML = PIPELINE_STEPS.map((step, index) => {
+          let rowClass = "";
+          let icon = "○";
+          let status = "Pending";
+          if (detail.run?.status === "failed" && index === stageIndex) {
+            rowClass = "error";
+            icon = "×";
+            status = "Error";
+          } else if (detail.run?.status === "done" || index < stageIndex) {
+            icon = "✓";
+            status = "Done";
+          } else if (detail.run?.status === "running" && index === stageIndex) {
+            rowClass = "active";
+            icon = "●";
+            status = "Running";
+          }
+
+          const logItems = logs[step.id] || [];
+          return `
+            <div class="row ${rowClass}">
+              <div>${icon}</div>
+              <div style="font-weight:600; font-size:14px;">${escapeHtml(step.title)}</div>
+              <div>${statusBadge(status.toLowerCase())}</div>
+              <button class="btn btn-ghost log-toggle-btn" data-step="${step.id}">logs</button>
+              <div id="logs-${step.id}" class="logbox hidden">${escapeHtml(logItems.join("\n") || "No logs")}</div>
+            </div>
+          `;
+        }).join("");
+
+        for (const button of document.querySelectorAll(".log-toggle-btn")) {
+          button.addEventListener("click", () => {
+            const key = button.dataset.step;
+            if (!key) return;
+            document.getElementById(`logs-${key}`).classList.toggle("hidden");
+          });
+        }
+      }
+
+      function renderBrief(detail) {
+        const target = document.getElementById("briefBody");
+        const summary = detail.summary;
+        if (!summary) {
+          target.innerHTML = "<p class='muted'>Summary not available yet.</p>";
+          return;
+        }
+
+        if (state.layer === "1") {
+          target.innerHTML = `<h3>Layer 1: Ultra-Concise Key Concepts</h3><ul>${summary.layer1KeyConcepts.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+          return;
+        }
+        if (state.layer === "2") {
+          target.innerHTML = `<h3>Layer 2: Structured Explanation</h3>${summary.layer2StructuredExplanation
+            .map(
+              (section) =>
+                `<h4>${escapeHtml(section.heading)}</h4><ul>${section.points.map((point) => `<li>${escapeHtml(point)}</li>`).join("")}</ul>`,
+            )
+            .join("")}`;
+          return;
+        }
+
+        target.innerHTML = `<h3>Layer 3: Detailed Notes</h3><ul>${summary.layer3DetailedNotes.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+      }
+
+      function renderSources(detail) {
+        const onlyPdf = document.getElementById("sourcesPdfOnly").checked;
+        const rows = detail.materials.filter((item) => {
+          if (!onlyPdf) return true;
+          return /\.pdf(\?|$)/i.test(item.url) || /pdf/i.test(item.title);
+        });
+        const body = document.getElementById("sourcesBody");
+        if (rows.length === 0) {
+          body.innerHTML = "<tr><td colspan='4' class='muted'>No materials available</td></tr>";
+          return;
+        }
+        body.innerHTML = rows
+          .map(
+            (item) => `
+              <tr>
+                <td>${escapeHtml(item.title)}</td>
+                <td><span style="color:var(--success); font-weight:600;">Done</span></td>
+                <td>${item.url.startsWith("mock://") ? "<span style='color:var(--success)'>Yes</span>" : "<span class='muted'>No</span>"}</td>
+                <td><a class="btn btn-ghost" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">Open</a></td>
+              </tr>
+            `,
+          )
+          .join("");
+      }
+
+      function renderResolver(detail) {
+        const resolver = detail.resolverResult;
+        if (!resolver) {
+          document.getElementById("resolverSectionTitle").textContent = "No resolver output yet";
+          document.getElementById("resolverSectionId").textContent = "-";
+          document.getElementById("resolverOverride").textContent = "-";
+          return;
+        }
+
+        document.getElementById("resolverSectionTitle").textContent = resolver.selectedSectionTitle;
+        document.getElementById("resolverSectionId").textContent = resolver.selectedSectionId;
+        const confidence = Math.round((resolver.debug.confidenceScore || 0) * 100);
+        const confidenceFill = document.getElementById("confidenceFill");
+        confidenceFill.style.width = `${confidence}%`;
+        confidenceFill.classList.toggle("low", confidence < 60);
+        document.getElementById("confidenceLabel").textContent = `${confidence}%`;
+        document.getElementById("resolverOverride").textContent = `Override: ${resolver.debug.overrideApplied || "none"}`;
+
+        const list = resolver.debug.allSections || [];
+        document.getElementById("allSectionsList").textContent = list
+          .map((item) => `${item.sectionId}  ${item.sectionTitle}  (score=${item.score})`)
+          .join("\n");
+
+        document.getElementById("debugJson").textContent = JSON.stringify(
+          {
+            resolver,
+            providerTrace: detail.run?.providerTrace,
+            schemaValidationTrace: detail.run?.schemaValidationTrace,
+          },
+          null,
+          2,
+        );
+      }
+
+      function wireLayerTabs() {
+        for (const tab of document.querySelectorAll(".tab")) {
+          tab.addEventListener("click", () => {
+            state.layer = tab.dataset.layer;
+            for (const button of document.querySelectorAll(".tab")) {
+              button.classList.toggle("active", button.dataset.layer === state.layer);
+            }
+            renderBrief(state.detail);
+          });
+        }
+      }
+
+      async function loadSession() {
+        if (!state.sessionId) return;
+        const detailResp = await jsonFetch(`/api/session/${encodeURIComponent(state.sessionId)}`);
+        const debugResp = await jsonFetch(`/api/session/${encodeURIComponent(state.sessionId)}/debug`).catch(() => null);
+        state.detail = detailResp.detail;
+        state.debug = debugResp?.debug || null;
+
+        renderHeader(state.detail);
+        renderError(state.detail);
+        renderPipeline(state.detail);
+        renderBrief(state.detail);
+        renderSources(state.detail);
+        renderResolver(state.detail);
+        setSystemStatus(state.detail.run);
+      }
+
+      async function rerun() {
+        if (!state.detail) return;
+        const button = document.getElementById("rerunBtn");
+        button.disabled = true;
+        button.textContent = "Running...";
+        try {
+          await jsonFetch(`/api/session/${encodeURIComponent(state.sessionId)}/override`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              persistAnchor: true,
+              provider: document.getElementById("ovProvider").value,
+            }),
+          });
+          await loadSession();
+        } finally {
+          button.disabled = false;
+          button.textContent = "Re-run";
+        }
+      }
+
+      async function applyOverride(event) {
+        event.preventDefault();
+        const submit = event.currentTarget.querySelector("button[type='submit']");
+        submit.disabled = true;
+        submit.textContent = "Running...";
+        try {
+          await jsonFetch(`/api/session/${encodeURIComponent(state.sessionId)}/override`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sectionId: document.getElementById("ovSectionId").value || undefined,
+              topicNumber: document.getElementById("ovTopicNumber").value ? Number(document.getElementById("ovTopicNumber").value) : undefined,
+              contains: document.getElementById("ovContains").value || undefined,
+              provider: document.getElementById("ovProvider").value,
+              persistAnchor: document.getElementById("ovPersistAnchor").checked,
+            }),
+          });
+          await loadSession();
+        } finally {
+          submit.disabled = false;
+          submit.textContent = "Apply Override";
+        }
+      }
+
+      function clearOverrides() {
+        document.getElementById("ovSectionId").value = "";
+        document.getElementById("ovTopicNumber").value = "";
+        document.getElementById("ovContains").value = "";
+      }
+
+      function copyBrief() {
+        if (!state.detail?.summary) return;
+        const text = [
+          "Layer 1",
+          ...state.detail.summary.layer1KeyConcepts.map((item) => `- ${item}`),
+          "",
+          "Layer 2",
+          ...state.detail.summary.layer2StructuredExplanation.flatMap((item) => [
+            `## ${item.heading}`,
+            ...item.points.map((point) => `- ${point}`),
+          ]),
+          "",
+          "Layer 3",
+          ...state.detail.summary.layer3DetailedNotes.map((item) => `- ${item}`),
+        ].join("\n");
+        navigator.clipboard.writeText(text).catch(() => undefined);
+      }
+
+      function exportBrief() {
+        if (!state.detail?.summary) return;
+        const markdown = [
+          `# ${state.detail.session.courseName}`,
+          `## ${state.detail.session.sessionLabel || "Session"}`,
+          "",
+          "### Layer 1",
+          ...state.detail.summary.layer1KeyConcepts.map((item) => `- ${item}`),
+          "",
+          "### Layer 2",
+          ...state.detail.summary.layer2StructuredExplanation.flatMap((item) => [
+            `#### ${item.heading}`,
+            ...item.points.map((point) => `- ${point}`),
+          ]),
+          "",
+          "### Layer 3",
+          ...state.detail.summary.layer3DetailedNotes.map((item) => `- ${item}`),
+        ].join("\n");
+
+        const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${state.sessionId}.md`;
+        link.click();
+        URL.revokeObjectURL(url);
+      }
+
+      document.getElementById("rerunBtn").addEventListener("click", rerun);
+      document.getElementById("retryBtn").addEventListener("click", rerun);
+      document.getElementById("copyBriefBtn").addEventListener("click", copyBrief);
+      document.getElementById("exportBriefBtn").addEventListener("click", exportBrief);
+      document.getElementById("overridesForm").addEventListener("submit", applyOverride);
+      document.getElementById("clearOverridesBtn").addEventListener("click", clearOverrides);
+      document.getElementById("sourcesPdfOnly").addEventListener("change", () => renderSources(state.detail));
+      document.getElementById("toggleDebugBtn").addEventListener("click", () => {
+        const panel = document.getElementById("debugPanel");
+        panel.classList.toggle("hidden");
+        document.getElementById("toggleDebugBtn").textContent = panel.classList.contains("hidden") ? "Expand" : "Collapse";
+      });
+      document.getElementById("openDebugBtn").addEventListener("click", () => {
+        document.getElementById("technicalError").classList.toggle("hidden");
+      });
+      document.getElementById("copyDebugBtn").addEventListener("click", () => {
+        navigator.clipboard.writeText(document.getElementById("debugJson").textContent || "").catch(() => undefined);
+      });
+      document.getElementById("allSectionsSearch").addEventListener("input", () => {
+        const query = document.getElementById("allSectionsSearch").value.toLowerCase().trim();
+        const allSections = state.detail?.resolverResult?.debug?.allSections || [];
+        document.getElementById("allSectionsList").textContent = allSections
+          .filter((item) => !query || `${item.sectionId} ${item.sectionTitle}`.toLowerCase().includes(query))
+          .map((item) => `${item.sectionId}  ${item.sectionTitle}  (score=${item.score})`)
+          .join("\n");
+      });
+
+      wireLayerTabs();
+      state.sessionId = sessionIdFromPath();
+      if (!state.sessionId) {
+        document.getElementById("sessionTitle").textContent = "Missing session id";
+      } else {
+        loadSession().catch((error) => {
+          document.getElementById("sessionTitle").textContent = "Failed to load session";
+          document.getElementById("sessionSubtitle").textContent = error.message || String(error);
+        });
+      }
+    </script>
+  </body>
+</html>

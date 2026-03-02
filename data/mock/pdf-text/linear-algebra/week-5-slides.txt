@@ -1,0 +1,2 @@
+Week 5 slides summary: vectors and subspaces, span, linear independence, basis, and dimension.
+The deck introduces geometric interpretation of subspaces and row-reduction steps for rank checks.

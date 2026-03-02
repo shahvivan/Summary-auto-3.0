@@ -1,0 +1,4 @@
+Topic 3 focuses on probability distributions.
+Key concepts: random variable, probability mass function, probability density function.
+The mean and variance are computed differently for discrete and continuous distributions.
+Binomial and normal distributions are central models in applied statistics.

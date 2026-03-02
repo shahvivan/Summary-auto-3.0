@@ -1,0 +1,2 @@
+Topic 2 explains visual summaries: histograms, box plots, and scatter plots.
+Interpret chart shape, skewness, and outliers to support data-driven decisions.

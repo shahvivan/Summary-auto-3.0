@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>History | LecturePrep</title>
+    <link rel="stylesheet" href="/common.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark"></span>
+          <span class="brand-name">LecturePrep</span>
+        </div>
+        <nav class="sidebar-nav">
+          <a class="nav-link" href="/"><span>Today</span></a>
+          <a class="nav-link active" href="/history"><span>History</span></a>
+          <a class="nav-link" href="/settings"><span>Settings</span></a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="main-inner stack">
+          <header class="page-head">
+            <div>
+              <h1 class="page-title">Run History</h1>
+              <div class="page-sub">Recent runs across courses with provider and stage traces.</div>
+            </div>
+            <div class="actions">
+              <button id="refreshBtn" class="btn btn-secondary">Refresh</button>
+            </div>
+          </header>
+
+          <section id="runsList" class="cards"></section>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      function escapeHtml(input) {
+        return String(input)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      async function jsonFetch(url, options) {
+        const res = await fetch(url, options);
+        const body = await res.json().catch(() => ({ ok: false, message: "Invalid JSON response" }));
+        if (!res.ok || body.ok === false) {
+          throw new Error(body.message || `Request failed (${res.status})`);
+        }
+        return body;
+      }
+
+      function badge(status) {
+        const value = status === "failed" ? "error" : status;
+        return `<span class="status-badge status-${escapeHtml(value)}"><span class="dot"></span>${escapeHtml(value)}</span>`;
+      }
+
+      async function loadRuns() {
+        const data = await jsonFetch("/api/runs/latest");
+        const list = document.getElementById("runsList");
+        if (data.runs.length === 0) {
+          list.innerHTML = `<article class="card"><div class="muted">No runs yet.</div></article>`;
+          return;
+        }
+
+        list.innerHTML = data.runs
+          .map(
+            (run) => `
+              <article class="card">
+                <div style="display:flex; justify-content:space-between; gap:10px;">
+                  <div>
+                    <a href="/session/${encodeURIComponent(run.sessionId)}" style="font-weight:600">${escapeHtml(run.sessionId)}</a>
+                    <div class="small muted">Stage: ${escapeHtml(run.stage)} · Updated: ${escapeHtml(run.updatedAt)}</div>
+                    <div class="small muted">Provider: ${escapeHtml(run.providerTrace?.finalProvider || "-")}</div>
+                  </div>
+                  ${badge(run.status)}
+                </div>
+              </article>
+            `,
+          )
+          .join("");
+      }
+
+      document.getElementById("refreshBtn").addEventListener("click", loadRuns);
+      loadRuns().catch((error) => {
+        document.getElementById("runsList").innerHTML = `<article class="card error">${escapeHtml(error.message || String(error))}</article>`;
+      });
+    </script>
+  </body>
+</html>

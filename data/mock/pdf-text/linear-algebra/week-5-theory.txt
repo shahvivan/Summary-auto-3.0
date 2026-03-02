@@ -1,0 +1,2 @@
+Week 5 introduces vector spaces and subspaces.
+A subspace must satisfy closure under addition and scalar multiplication.

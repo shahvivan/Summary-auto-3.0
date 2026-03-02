@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LecturePrep Cockpit</title>
+    <link rel="stylesheet" href="/common.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="topProgress" class="top-progress"></div>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark"></span>
+          <span class="brand-name">LecturePrep</span>
+        </div>
+        <nav class="sidebar-nav">
+          <a class="nav-link active" href="/"><span>Today</span></a>
+          <a class="nav-link" href="/history"><span>History</span></a>
+          <a class="nav-link" href="/settings"><span>Settings</span></a>
+        </nav>
+        <div class="sidebar-status">
+          <div class="status-line">
+            <span id="systemDot" class="status-dot"></span>
+            <span id="systemStatusText">Idle</span>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="main-inner">
+          <header class="page-head">
+            <div>
+              <h1 id="todayTitle" class="page-title">Today</h1>
+              <div id="todaySubtitle" class="page-sub">Loading sessions...</div>
+            </div>
+            <div class="actions">
+              <select id="headerProvider" class="btn btn-secondary" style="height: 48px">
+                <option value="auto">Provider: Auto</option>
+                <option value="gemini">Provider: Gemini</option>
+                <option value="chatpdf">Provider: ChatPDF</option>
+                <option value="deterministic">Provider: Deterministic</option>
+              </select>
+              <button id="runAutopilotBtn" class="btn btn-cta btn-lg">Run Autopilot</button>
+              <button id="openManualBtn" class="btn btn-secondary btn-lg">Manual Run +</button>
+            </div>
+          </header>
+
+          <section id="runningBanner" class="running-banner">
+            <div id="runningBannerText"></div>
+            <button id="runningBannerRefresh" class="btn btn-ghost">Refresh</button>
+          </section>
+
+          <section class="grid-main">
+            <div class="cards" id="sessionCards"></div>
+
+            <aside class="latest-preview">
+              <article class="panel">
+                <p class="section-kicker">Latest Brief</p>
+                <h2 id="latestTitle" style="margin: 0 0 8px; font-size: 18px">No brief yet</h2>
+                <div id="latestBody" class="preview-body muted small">Run a session to preview the newest generated brief here.</div>
+                <div class="divider"></div>
+                <a id="latestOpen" href="/" class="btn btn-ghost" style="display: inline-flex; align-items: center">Open Full Session</a>
+              </article>
+            </aside>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <div id="manualModalRoot" class="modal-root">
+      <div class="modal">
+        <div class="modal-head">
+          <h2 style="margin: 0; font-size: 18px">Manual Run</h2>
+          <button id="closeManualBtn" class="btn btn-ghost">Close</button>
+        </div>
+        <form id="manualForm" class="stack">
+          <div class="field">
+            <label for="manualCourse">Course</label>
+            <select id="manualCourse" name="courseName"></select>
+          </div>
+          <div class="field">
+            <label for="manualDate">Date (YYYY-MM-DD)</label>
+            <input id="manualDate" name="date" required />
+          </div>
+          <div class="field">
+            <label for="manualTopic">Topic Number</label>
+            <input id="manualTopic" name="topicNumber" type="number" min="1" placeholder="4" />
+          </div>
+          <div class="field">
+            <label for="manualKeyword">Keyword (optional)</label>
+            <input id="manualKeyword" name="contains" placeholder="sorting" />
+          </div>
+          <div class="field">
+            <label for="manualSectionId">Section ID (optional)</label>
+            <input id="manualSectionId" name="sectionId" />
+          </div>
+          <div class="field">
+            <label for="manualProvider">Provider</label>
+            <select id="manualProvider" name="provider">
+              <option value="auto">auto</option>
+              <option value="gemini">gemini</option>
+              <option value="chatpdf">chatpdf</option>
+              <option value="deterministic">deterministic</option>
+            </select>
+          </div>
+          <label style="display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--text-secondary)">
+            <input id="manualDebug" type="checkbox" name="moodleDebug" />
+            Enable Moodle debug mode
+          </label>
+          <label style="display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--text-secondary)">
+            <input id="manualRequireAuth" type="checkbox" name="requireAuth" checked />
+            Require authenticated Moodle session
+          </label>
+          <div id="manualIsolationWarning" class="override-pill">
+            ⚡ Course isolation warning: this differs from the currently running session.
+          </div>
+          <div class="modal-foot">
+            <button type="button" id="manualCancelBtn" class="btn btn-secondary">Cancel</button>
+            <button type="submit" id="manualSubmitBtn" class="btn btn-cta">Run Now</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="overrideModalRoot" class="modal-root">
+      <div class="modal">
+        <div class="modal-head">
+          <h2 id="overrideTitle" style="margin: 0; font-size: 18px">Override</h2>
+          <button id="closeOverrideBtn" class="btn btn-ghost">Close</button>
+        </div>
+        <form id="overrideForm" class="stack">
+          <div class="field">
+            <label for="overrideSectionId">1. Section ID</label>
+            <input id="overrideSectionId" name="sectionId" />
+          </div>
+          <div class="field">
+            <label for="overrideTopicNumber">2. Topic Number</label>
+            <input id="overrideTopicNumber" name="topicNumber" type="number" min="1" />
+          </div>
+          <div class="field">
+            <label for="overrideContains">3. Keyword Contains</label>
+            <input id="overrideContains" name="contains" />
+          </div>
+          <div class="field">
+            <label for="overrideProvider">Provider</label>
+            <select id="overrideProvider" name="provider">
+              <option value="auto">auto</option>
+              <option value="gemini">gemini</option>
+              <option value="chatpdf">chatpdf</option>
+              <option value="deterministic">deterministic</option>
+            </select>
+          </div>
+          <label style="display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--text-secondary)">
+            <input id="overrideRequireAuth" type="checkbox" name="requireAuth" checked />
+            Require authenticated Moodle session
+          </label>
+          <div class="modal-foot">
+            <button type="button" id="overrideCancelBtn" class="btn btn-secondary">Cancel</button>
+            <button type="submit" id="overrideSubmitBtn" class="btn btn-primary">Apply & Run</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      const STEP_IDS = ["scan", "resolve", "download", "parse", "summarize", "done"];
+      const KNOWN_COURSES = [
+        "Accounting I BBA & DBAI & GBL",
+        "Business Law II (sections C, D E & F)",
+        "Macroeconomics in a Global Context Sec: F",
+        "Descriptive Statistics & Probability",
+      ];
+
+      const state = {
+        today: new Date().toISOString().slice(0, 10),
+        sessions: [],
+        runsBySession: new Map(),
+        activeOverrideSession: null,
+        currentRunningCourse: "",
+      };
+
+      function escapeHtml(input) {
+        return String(input)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      async function jsonFetch(url, options) {
+        const res = await fetch(url, options);
+        const body = await res.json().catch(() => ({ ok: false, message: "Invalid JSON response" }));
+        if (!res.ok || body.ok === false) {
+          throw new Error(body.message || `Request failed (${res.status})`);
+        }
+        return body;
+      }
+
+      function statusBadge(status) {
+        const value = status === "failed" ? "error" : status;
+        return `<span class="status-badge status-${escapeHtml(value)}"><span class="dot"></span>${escapeHtml(value)}</span>`;
+      }
+
+      function stageToIndex(stage, status) {
+        if (status === "done") return 5;
+        if (status === "failed") {
+          if (stage === "parsing") return 3;
+          if (stage === "summarizing") return 4;
+          if (stage === "resolving") return 1;
+          if (stage === "downloading") return 2;
+          return 0;
+        }
+        if (stage === "resolving") return 1;
+        if (stage === "downloading") return 2;
+        if (stage === "parsing") return 3;
+        if (stage === "summarizing") return 4;
+        if (stage === "writing") return 5;
+        return 0;
+      }
+
+      function renderStepper(run) {
+        const index = stageToIndex(run?.stage || "queued", run?.status || "queued");
+        const status = run?.status || "queued";
+        return STEP_IDS.map((id, i) => {
+          let cls = "pending";
+          let icon = "○";
+          if (status === "failed" && i === index) {
+            cls = "failed";
+            icon = "×";
+          } else if (i < index || status === "done") {
+            cls = "done";
+            icon = "✓";
+          } else if (i === index && status === "running") {
+            cls = "running";
+            icon = "●";
+          }
+          return `<div class="step ${cls}"><div class="step-node">${icon}</div>${escapeHtml(id.slice(0, 3).toUpperCase())}</div>`;
+        }).join("");
+      }
+
+      function setSystemStatus(runningSession, erroredSession) {
+        const dot = document.getElementById("systemDot");
+        const text = document.getElementById("systemStatusText");
+        const progress = document.getElementById("topProgress");
+
+        dot.className = "status-dot";
+        progress.classList.remove("running");
+
+        if (runningSession) {
+          dot.classList.add("running");
+          text.textContent = `Running - ${runningSession.run.stage}`;
+          progress.classList.add("running");
+          return;
+        }
+        if (erroredSession) {
+          dot.classList.add("error");
+          text.textContent = `Error - ${erroredSession.run.stage}`;
+          return;
+        }
+        text.textContent = "Idle";
+      }
+
+      async function refreshDashboard() {
+        const data = await jsonFetch(`/api/today?date=${state.today}`);
+        state.sessions = data.sessions;
+        state.runsBySession.clear();
+
+        for (const run of data.runs) {
+          if (!state.runsBySession.has(run.sessionId)) {
+            state.runsBySession.set(run.sessionId, run);
+          }
+        }
+        for (const session of data.sessions) {
+          if (session.lastRunId) {
+            const found = data.runs.find((run) => run.runId === session.lastRunId);
+            if (found) {
+              state.runsBySession.set(session.sessionId, found);
+            }
+          }
+        }
+
+        const dateHeading = new Date(`${state.today}T08:00:00`);
+        document.getElementById("todayTitle").textContent = dateHeading.toLocaleDateString(undefined, {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
+
+        const prepared = data.sessions.filter((session) => session.status === "done").length;
+        const running = data.sessions.filter((session) => session.status === "running").length;
+        const errors = data.sessions.filter((session) => session.status === "failed").length;
+        document.getElementById("todaySubtitle").textContent = `${data.sessions.length} sessions today · ${prepared} prepared · ${errors} errors`;
+
+        const cards = document.getElementById("sessionCards");
+        if (data.sessions.length === 0) {
+          cards.innerHTML = `
+            <article class="card" style="text-align:center; padding:48px 24px;">
+              <div style="font-size:38px;">📭</div>
+              <h3 style="margin:12px 0 4px; font-size:18px;">No sessions scheduled for today</h3>
+              <p class="muted" style="margin:0 0 16px;">Check your calendar connection or add one manually.</p>
+              <div class="actions" style="justify-content:center;">
+                <button class="btn btn-secondary" id="emptyManualBtn">Manual Run +</button>
+                <a class="btn btn-ghost" href="/settings">Check Settings</a>
+              </div>
+            </article>
+          `;
+          document.getElementById("emptyManualBtn").addEventListener("click", openManualModal);
+        } else {
+          cards.innerHTML = data.sessions
+            .map((session) => {
+              const run = state.runsBySession.get(session.sessionId);
+              const cardClass = session.status === "done" ? "card interactive done" : session.status === "failed" ? "card interactive error" : "card interactive";
+              const summaryHint =
+                session.status === "done"
+                  ? `<div class="small muted" style="margin-top:8px;">Brief ready for ${escapeHtml(session.courseName)}</div>`
+                  : "";
+              return `
+                <article class="${cardClass}">
+                  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                    <div>
+                      <div style="font-size:16px; font-weight:700;">${escapeHtml(session.courseName)}</div>
+                      <div class="small" style="color: var(--navy-mid);">${escapeHtml(session.sessionLabel || "Session")}</div>
+                      <div class="small muted">${escapeHtml(session.eventTitle)}</div>
+                      <div class="mono muted" style="margin-top:4px;">${escapeHtml(session.sessionId)}</div>
+                    </div>
+                    ${statusBadge(session.status)}
+                  </div>
+                  <div class="divider"></div>
+                  <div class="stepper">${renderStepper(run)}</div>
+                  ${
+                    session.status === "failed"
+                      ? `<div style="margin-top:10px; color: var(--danger); font-size:13px;">Failed at ${escapeHtml(run?.stage || "unknown")} · <a href="/session/${encodeURIComponent(session.sessionId)}">View error</a></div>`
+                      : ""
+                  }
+                  ${summaryHint}
+                  <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+                    <a class="btn btn-ghost" href="/session/${encodeURIComponent(session.sessionId)}">Open</a>
+                    <button class="btn btn-primary run-now-btn" data-session-id="${escapeHtml(session.sessionId)}">${session.status === "done" ? "Re-run" : "Run Now"}</button>
+                    <button class="btn btn-secondary override-btn" data-session-id="${escapeHtml(session.sessionId)}">Override...</button>
+                  </div>
+                </article>
+              `;
+            })
+            .join("");
+        }
+
+        for (const btn of document.querySelectorAll(".run-now-btn")) {
+          btn.addEventListener("click", handleRunNow);
+        }
+        for (const btn of document.querySelectorAll(".override-btn")) {
+          btn.addEventListener("click", openOverrideModalFromButton);
+        }
+
+        const runningSession = data.sessions
+          .map((session) => ({ session, run: state.runsBySession.get(session.sessionId) }))
+          .find((item) => item.session.status === "running" && item.run);
+        const erroredSession = data.sessions
+          .map((session) => ({ session, run: state.runsBySession.get(session.sessionId) }))
+          .find((item) => item.session.status === "failed" && item.run);
+        setSystemStatus(runningSession, erroredSession);
+
+        state.currentRunningCourse = runningSession?.session?.courseName || "";
+        const banner = document.getElementById("runningBanner");
+        if (runningSession) {
+          banner.classList.add("show");
+          document.getElementById("runningBannerText").textContent = `Running Autopilot - ${runningSession.session.courseName} - Stage ${runningSession.run.stage}`;
+        } else {
+          banner.classList.remove("show");
+          document.getElementById("runningBannerText").textContent = "";
+        }
+
+        await renderLatestBriefPanel(data.runs);
+        refreshManualCourseOptions();
+      }
+
+      async function renderLatestBriefPanel(runs) {
+        const latestDone = runs.find((run) => run.status === "done");
+        const titleEl = document.getElementById("latestTitle");
+        const bodyEl = document.getElementById("latestBody");
+        const openEl = document.getElementById("latestOpen");
+
+        if (!latestDone) {
+          titleEl.textContent = "No brief yet";
+          bodyEl.textContent = "Run a session to preview the newest generated brief here.";
+          openEl.href = "/";
+          return;
+        }
+
+        const detail = await jsonFetch(`/api/session/${encodeURIComponent(latestDone.sessionId)}`);
+        titleEl.textContent = `${detail.detail.session.courseName} · ${detail.detail.session.sessionLabel || "Session"}`;
+        const points = detail.detail.summary?.layer1KeyConcepts || [];
+        bodyEl.innerHTML = `<ul>${points.slice(0, 8).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+        openEl.href = `/session/${encodeURIComponent(latestDone.sessionId)}`;
+      }
+
+      async function handleRunNow(event) {
+        const button = event.currentTarget;
+        const sessionId = button.dataset.sessionId;
+        if (!sessionId) return;
+        button.disabled = true;
+        button.textContent = "Running...";
+        try {
+          await jsonFetch(`/api/session/${encodeURIComponent(sessionId)}/override`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              provider: document.getElementById("headerProvider").value,
+              persistAnchor: true,
+            }),
+          });
+          await refreshDashboard();
+        } finally {
+          button.disabled = false;
+          button.textContent = "Run Now";
+        }
+      }
+
+      async function runAutopilot() {
+        const button = document.getElementById("runAutopilotBtn");
+        button.disabled = true;
+        button.textContent = "Running...";
+        try {
+          await jsonFetch("/api/run-today", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              date: state.today,
+              provider: document.getElementById("headerProvider").value,
+            }),
+          });
+        } finally {
+          button.disabled = false;
+          button.textContent = "Run Autopilot";
+        }
+        await refreshDashboard();
+      }
+
+      function toggleModal(id, show) {
+        const root = document.getElementById(id);
+        root.classList.toggle("show", Boolean(show));
+      }
+
+      function refreshManualCourseOptions() {
+        const select = document.getElementById("manualCourse");
+        const choices = new Set(KNOWN_COURSES);
+        for (const session of state.sessions) {
+          choices.add(session.courseName);
+        }
+        const sorted = Array.from(choices).sort((a, b) => a.localeCompare(b));
+        select.innerHTML = sorted.map((course) => `<option value="${escapeHtml(course)}">${escapeHtml(course)}</option>`).join("");
+      }
+
+      function openManualModal() {
+        document.getElementById("manualDate").value = state.today;
+        document.getElementById("manualProvider").value = document.getElementById("headerProvider").value;
+        toggleModal("manualModalRoot", true);
+        validateIsolationWarning();
+      }
+
+      function closeManualModal() {
+        toggleModal("manualModalRoot", false);
+      }
+
+      function validateIsolationWarning() {
+        const selected = document.getElementById("manualCourse").value;
+        const warning = document.getElementById("manualIsolationWarning");
+        const show = state.currentRunningCourse && selected && selected !== state.currentRunningCourse;
+        warning.classList.toggle("show", Boolean(show));
+      }
+
+      async function submitManual(event) {
+        event.preventDefault();
+        const submit = document.getElementById("manualSubmitBtn");
+        const payload = {
+          courseName: document.getElementById("manualCourse").value,
+          date: document.getElementById("manualDate").value,
+          sessionLabel: document.getElementById("manualTopic").value
+            ? `Topic ${document.getElementById("manualTopic").value}`
+            : undefined,
+          eventTitle: document.getElementById("manualTopic").value
+            ? `Prepare Topic ${document.getElementById("manualTopic").value}`
+            : undefined,
+          provider: document.getElementById("manualProvider").value,
+          moodleDebug: document.getElementById("manualDebug").checked,
+          requireAuth: document.getElementById("manualRequireAuth").checked,
+          override: {
+            sectionId: document.getElementById("manualSectionId").value || undefined,
+            topicNumber: document.getElementById("manualTopic").value
+              ? Number(document.getElementById("manualTopic").value)
+              : undefined,
+            contains: document.getElementById("manualKeyword").value || undefined,
+            persistAsAnchor: true,
+          },
+        };
+
+        submit.disabled = true;
+        submit.textContent = "Running...";
+        try {
+          const out = await jsonFetch("/api/run-session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          closeManualModal();
+          window.location.href = `/session/${encodeURIComponent(out.sessionId)}`;
+        } finally {
+          submit.disabled = false;
+          submit.textContent = "Run Now";
+        }
+      }
+
+      function openOverrideModalFromButton(event) {
+        const sessionId = event.currentTarget.dataset.sessionId;
+        if (!sessionId) return;
+        state.activeOverrideSession = state.sessions.find((session) => session.sessionId === sessionId) || null;
+        document.getElementById("overrideTitle").textContent = state.activeOverrideSession
+          ? `Override · ${state.activeOverrideSession.courseName}`
+          : "Override";
+        document.getElementById("overrideProvider").value = document.getElementById("headerProvider").value;
+        toggleModal("overrideModalRoot", true);
+      }
+
+      function closeOverrideModal() {
+        toggleModal("overrideModalRoot", false);
+      }
+
+      async function submitOverride(event) {
+        event.preventDefault();
+        if (!state.activeOverrideSession) return;
+        const submit = document.getElementById("overrideSubmitBtn");
+        submit.disabled = true;
+        submit.textContent = "Running...";
+        try {
+          await jsonFetch(`/api/session/${encodeURIComponent(state.activeOverrideSession.sessionId)}/override`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sectionId: document.getElementById("overrideSectionId").value || undefined,
+              topicNumber: document.getElementById("overrideTopicNumber").value
+                ? Number(document.getElementById("overrideTopicNumber").value)
+                : undefined,
+              contains: document.getElementById("overrideContains").value || undefined,
+              provider: document.getElementById("overrideProvider").value,
+              requireAuth: document.getElementById("overrideRequireAuth").checked,
+              persistAnchor: true,
+            }),
+          });
+          closeOverrideModal();
+          await refreshDashboard();
+        } finally {
+          submit.disabled = false;
+          submit.textContent = "Apply & Run";
+        }
+      }
+
+      document.getElementById("runAutopilotBtn").addEventListener("click", runAutopilot);
+      document.getElementById("runningBannerRefresh").addEventListener("click", refreshDashboard);
+      document.getElementById("openManualBtn").addEventListener("click", openManualModal);
+      document.getElementById("closeManualBtn").addEventListener("click", closeManualModal);
+      document.getElementById("manualCancelBtn").addEventListener("click", closeManualModal);
+      document.getElementById("manualForm").addEventListener("submit", submitManual);
+      document.getElementById("manualCourse").addEventListener("change", validateIsolationWarning);
+      document.getElementById("closeOverrideBtn").addEventListener("click", closeOverrideModal);
+      document.getElementById("overrideCancelBtn").addEventListener("click", closeOverrideModal);
+      document.getElementById("overrideForm").addEventListener("submit", submitOverride);
+
+      refreshDashboard().catch((error) => {
+        document.getElementById("sessionCards").innerHTML = `<article class="card error"><strong>Failed to load dashboard</strong><div class="small muted">${escapeHtml(error.message || String(error))}</div></article>`;
+      });
+    </script>
+  </body>
+</html>

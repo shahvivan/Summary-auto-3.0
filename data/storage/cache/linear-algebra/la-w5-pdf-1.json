@@ -1,0 +1,7 @@
+{
+  "sourceUrl": "mock://linear-algebra/week-5-theory.pdf",
+  "sourceTitle": "Week 5 Theory",
+  "text": "Week 5 introduces vector spaces and subspaces.\nA subspace must satisfy closure under addition and scalar multiplication.",
+  "contentHash": "8c1db529",
+  "updatedAt": "2026-03-02T22:12:22.840Z"
+}

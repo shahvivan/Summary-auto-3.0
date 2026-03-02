@@ -1,0 +1,144 @@
+[
+  {
+    "id": "course-dsp-001",
+    "name": "Descriptive Statistics & Probability",
+    "slug": "descriptive-statistics-probability",
+    "url": "https://ecampus.esade.edu/course/view.php?id=44077",
+    "sections": [
+      {
+        "id": "sec-intro",
+        "title": "Introduction and Syllabus",
+        "resources": [
+          {
+            "id": "res-intro-doc-1",
+            "title": "Syllabus DOCX",
+            "type": "doc",
+            "url": "https://example.edu/syllabus.docx"
+          }
+        ]
+      },
+      {
+        "id": "sec-topic-1",
+        "title": "Topic 1 - Data Types and Scales",
+        "resources": [
+          {
+            "id": "res-t1-pdf-1",
+            "title": "Topic 1 Slides",
+            "type": "pdf",
+            "url": "mock://descriptive-statistics/topic-1-slides.pdf"
+          }
+        ]
+      },
+      {
+        "id": "sec-topic-2",
+        "title": "Topic 2 - Data Visualization",
+        "resources": [
+          {
+            "id": "res-t2-pdf-1",
+            "title": "Topic 2 Notes",
+            "type": "pdf",
+            "url": "mock://descriptive-statistics/topic-2-notes.pdf"
+          },
+          {
+            "id": "res-t2-doc-1",
+            "title": "Exercise Sheet DOCX",
+            "type": "doc",
+            "url": "https://example.edu/topic2-exercises.docx"
+          }
+        ]
+      },
+      {
+        "id": "sec-topic-3",
+        "title": "Topic 3 - Probability Distributions",
+        "resources": [
+          {
+            "id": "res-t3-pdf-1",
+            "title": "Topic 3 Core Notes",
+            "type": "pdf",
+            "url": "mock://descriptive-statistics/topic-3-core-notes.pdf"
+          },
+          {
+            "id": "res-t3-pdf-2",
+            "title": "Topic 3 Worked Examples",
+            "type": "pdf",
+            "url": "mock://descriptive-statistics/topic-3-worked-examples.pdf"
+          },
+          {
+            "id": "res-t3-xlsx-1",
+            "title": "Simulation Data",
+            "type": "xlsx",
+            "url": "https://example.edu/topic3-sim-data.xlsx"
+          }
+        ]
+      },
+      {
+        "id": "sec-topic-4",
+        "title": "Topic 4 - Measures of Dispersion",
+        "resources": [
+          {
+            "id": "res-t4-pdf-1",
+            "title": "Topic 4 Handout",
+            "type": "pdf",
+            "url": "mock://descriptive-statistics/topic-4-handout.pdf"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "course-la-001",
+    "name": "Linear Algebra",
+    "slug": "linear-algebra",
+    "url": "https://ecampus.esade.edu/course/view.php?id=44410",
+    "sections": [
+      {
+        "id": "la-week-4",
+        "title": "Week 4 - Matrix Transformations",
+        "resources": [
+          {
+            "id": "la-w4-pdf-1",
+            "title": "Week 4 Notes",
+            "type": "pdf",
+            "url": "mock://linear-algebra/week-4-notes.pdf"
+          }
+        ]
+      },
+      {
+        "id": "la-week-5",
+        "title": "Week 5 - Vectors and Subspaces",
+        "resources": [
+          {
+            "id": "la-w5-pdf-1",
+            "title": "Week 5 Theory",
+            "type": "pdf",
+            "url": "mock://linear-algebra/week-5-theory.pdf"
+          },
+          {
+            "id": "la-w5-pdf-2",
+            "title": "Week 5 Problem Set",
+            "type": "pdf",
+            "url": "mock://linear-algebra/week-5-problem-set.pdf"
+          },
+          {
+            "id": "la-w5-ppt-1",
+            "title": "Week 5 Slides Deck",
+            "type": "ppt",
+            "url": "mock://linear-algebra/week-5-slides.ppt"
+          }
+        ]
+      },
+      {
+        "id": "la-week-6",
+        "title": "Week 6 - Eigenvalues",
+        "resources": [
+          {
+            "id": "la-w6-link-1",
+            "title": "Week 6 External Reading",
+            "type": "link",
+            "url": "https://example.edu/la-week-6-reading"
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,2 @@
+Topic 4 covers dispersion measures: range, variance, standard deviation, and interquartile range.
+Interpret how spread changes across datasets and when robust measures are preferable.
