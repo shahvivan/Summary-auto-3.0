@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,6 +12,9 @@ const __dirname = path.dirname(__filename);
 
 async function main(): Promise<void> {
   await initStorage();
+  logInfo(
+    `Providers configured: gemini=${config.geminiEnabled}, chatpdf=${config.chatpdfEnabled}, deterministic=${config.deterministicEnabled}`,
+  );
 
   const app = express();
   app.use(express.json());

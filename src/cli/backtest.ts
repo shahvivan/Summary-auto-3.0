@@ -1,3 +1,5 @@
+import "dotenv/config";
+import { config } from "../config.js";
 import { executeRun } from "../core/orchestrator/pipeline.js";
 import { loadScheduleEvents, toSession } from "../core/scheduler/engine.js";
 import { initStorage, upsertSession } from "../storage/sqlite.js";
@@ -7,6 +9,9 @@ import { parseCliArgs } from "./args.js";
 
 async function main(): Promise<void> {
   await initStorage();
+  logInfo(
+    `Providers configured: gemini=${config.geminiEnabled}, chatpdf=${config.chatpdfEnabled}, deterministic=${config.deterministicEnabled}`,
+  );
 
   const args = parseCliArgs(process.argv.slice(2));
   const from = (args.from as string | undefined) ?? "0000-01-01";

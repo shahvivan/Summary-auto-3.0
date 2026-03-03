@@ -9,12 +9,12 @@ export class GeminiProvider {
   ) {}
 
   isConfigured(): boolean {
-    return this.apiKey.length > 0;
+    return this.apiKey.trim().length > 0 && this.model.trim().length > 0;
   }
 
   async generate(prompt: string): Promise<string> {
     if (!this.isConfigured()) {
-      throw new Error("Gemini API key is missing (GEMINI_API_KEY)");
+      throw new Error("Provider misconfigured: Gemini API key/model missing (GEMINI_API_KEY/GEMINI_MODEL)");
     }
 
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(

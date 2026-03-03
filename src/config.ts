@@ -20,8 +20,7 @@ export const config = {
   moodleBaseUrl: process.env.MOODLE_BASE_URL ?? "",
   resolverUseLiveMoodle: String(process.env.RESOLVER_USE_LIVE_MOODLE ?? "false").toLowerCase() === "true",
   resolverRecentLimit: Math.max(1, Number(process.env.RESOLVER_RECENT_LIMIT ?? 2)),
-  playwrightUserDataDir:
-    process.env.PLAYWRIGHT_USER_DATA_DIR || path.join(root, "data", "storage", "playwright-profile"),
+  playwrightUserDataDir: process.env.PLAYWRIGHT_USER_DATA_DIR || path.join(root, "data", "playwright-profile"),
   playwrightHeadless: String(process.env.PLAYWRIGHT_HEADLESS ?? "true").toLowerCase() === "true",
   summaryProviderDefault: (process.env.SUMMARY_PROVIDER_DEFAULT ?? "gemini").toLowerCase(),
   summaryFallbackEnabled: String(process.env.SUMMARY_FALLBACK_ENABLED ?? "true").toLowerCase() === "true",

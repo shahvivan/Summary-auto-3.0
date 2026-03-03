@@ -56,10 +56,12 @@
               <div class="field">
                 <label>Gemini</label>
                 <input value="GEMINI_API_KEY + GEMINI_MODEL" readonly />
+                <div id="geminiStatus" class="small muted">Checking configuration...</div>
               </div>
               <div class="field">
                 <label>ChatPDF</label>
-                <input value="CHATPDF_API_KEY + CHATPDF_SOURCE_ID" readonly />
+                <input value="CHATPDF_API_KEY (+ optional CHATPDF_SOURCE_ID)" readonly />
+                <div id="chatpdfStatus" class="small muted">Checking configuration...</div>
               </div>
             </div>
 
@@ -76,7 +78,8 @@
               </div>
               <div class="field">
                 <label>Calendar</label>
-                <input value="CALENDAR_USE_ICS + CALENDAR_ICS_URL" readonly />
+                <input value="CALENDAR_USE_ICS + CALENDAR_ICS_URL + ALLOW_MOCK_FALLBACK" readonly />
+                <div id="calendarStatus" class="small muted">Checking configuration...</div>
               </div>
             </div>
 
@@ -86,5 +89,52 @@
         </div>
       </main>
     </div>
+
+    <script>
+      function escapeHtml(input) {
+        return String(input)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      async function loadConfigStatus() {
+        const response = await fetch("/api/config-status");
+        const payload = await response.json();
+        if (!response.ok || payload.ok === false) {
+          throw new Error(payload.message || `Request failed (${response.status})`);
+        }
+
+        const providers = payload.providers || {};
+        const calendar = payload.calendar || {};
+
+        const geminiStatus = document.getElementById("geminiStatus");
+        geminiStatus.textContent = providers.geminiEnabled ? "Gemini: Enabled" : "Gemini: Disabled (missing GEMINI_API_KEY or GEMINI_MODEL)";
+        geminiStatus.style.color = providers.geminiEnabled ? "var(--success)" : "var(--text-muted)";
+
+        const chatpdfStatus = document.getElementById("chatpdfStatus");
+        if (providers.chatpdfEnabled) {
+          chatpdfStatus.textContent = "ChatPDF: Enabled";
+          chatpdfStatus.style.color = "var(--success)";
+        } else if (providers.chatpdfMissingSourceId) {
+          chatpdfStatus.textContent = "ChatPDF: Disabled (missing CHATPDF_SOURCE_ID)";
+          chatpdfStatus.style.color = "var(--warning)";
+        } else {
+          chatpdfStatus.textContent = "ChatPDF: Disabled (missing CHATPDF_API_KEY)";
+          chatpdfStatus.style.color = "var(--text-muted)";
+        }
+
+        const calendarStatus = document.getElementById("calendarStatus");
+        calendarStatus.textContent = `Calendar source: ${escapeHtml(calendar.source || "unknown")} · ALLOW_MOCK_FALLBACK=${Boolean(calendar.allowMockFallback)}`;
+      }
+
+      loadConfigStatus().catch((error) => {
+        document.getElementById("geminiStatus").textContent = `Status unavailable: ${error.message || String(error)}`;
+        document.getElementById("chatpdfStatus").textContent = "Status unavailable";
+        document.getElementById("calendarStatus").textContent = "Status unavailable";
+      });
+    </script>
   </body>
 </html>

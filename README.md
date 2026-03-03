@@ -2,17 +2,17 @@
 
 Production-oriented Moodle lecture preparation pipeline:
 
-- Scheduler (mock or ICS URL)
+- Scheduler (strict ICS or strict mock)
 - Resolver (mock Moodle JSON or live Playwright Moodle browser)
 - Material extraction (PDF + PPT)
-- AI summary routing (Gemini primary, ChatPDF fallback, deterministic offline mode)
+- AI summary routing (Gemini primary, optional ChatPDF backup, deterministic offline mode)
 - Run/session persistence with resolver/provider/schema traces
 - Web cockpit (`/`, `/session/:id`, `/history`, `/settings`)
 
 ## 1. Quick start (local)
 
 ```bash
-cd "/Users/jignesh/Documents/New project 4"
+cd "/Users/jignesh/Documents/Summary auto 3.0"
 npm install
 npm run start
 ```
@@ -23,7 +23,7 @@ Open: [http://localhost:3100](http://localhost:3100)
 
 ```bash
 # Today (from scheduler)
-npm run run-daily -- --date=2026-03-02
+npm run run-daily -- --date=2026-03-02 --debug
 
 # Manual single run
 npm run run-daily -- --course="Descriptive Statistics & Probability" --topic=3 --date=2026-03-02
@@ -43,67 +43,42 @@ Key vars:
 
 - `CALENDAR_USE_ICS=true`
 - `CALENDAR_ICS_URL=<your outlook .ics url>`
+- `ALLOW_MOCK_FALLBACK=false` (default)
 - `RESOLVER_USE_LIVE_MOODLE=true`
 - `MOODLE_BASE_URL=https://ecampus.esade.edu/my/`
 - `PLAYWRIGHT_USER_DATA_DIR=<absolute path>`
 - `GEMINI_API_KEY=<key>`
-- `CHATPDF_API_KEY=<key>`
-- `CHATPDF_SOURCE_ID=<source id>`
+- `GEMINI_MODEL=gemini-2.0-flash`
+- `CHATPDF_API_KEY=<optional>`
+- `CHATPDF_SOURCE_ID=<optional>`
 - `SUMMARY_PROVIDER_DEFAULT=auto|gemini|chatpdf|deterministic`
 
-## 4. First-time Playwright auth profile (required for live Moodle)
+ChatPDF is enabled only when both `CHATPDF_API_KEY` and `CHATPDF_SOURCE_ID` are set.
 
-This project uses a persistent browser profile. Create/login once, then reuse.
+## 4. Calendar source behavior
 
-```bash
-mkdir -p "/Users/jignesh/Documents/New project 4/data/storage/playwright-profile"
+- If `CALENDAR_USE_ICS=true`: scheduler uses ICS source only.
+- If ICS fails and `ALLOW_MOCK_FALLBACK=false`: run fails (no silent fallback).
+- If ICS fails and `ALLOW_MOCK_FALLBACK=true`: scheduler logs warning and falls back to mock.
 
-npx playwright open \
-  --browser=chromium \
-  --user-data-dir="/Users/jignesh/Documents/New project 4/data/storage/playwright-profile" \
-  "https://ecampus.esade.edu/my/"
-```
+Expected logs:
 
-Then complete login + MFA in that opened browser and close it.
+- `[INFO] Calendar source: ICS`
+- `[INFO] Calendar events loaded: N`
+- `[WARN] ICS failed, falling back to mock because ALLOW_MOCK_FALLBACK=true` (only when allowed)
 
-After this, live resolver runs reuse the stored authenticated session.
+## 5. Provider behavior
 
-## 5. Course map
+- Auto mode order: Gemini -> ChatPDF (only if configured) -> deterministic
+- `SUMMARY_PROVIDER_DEFAULT=chatpdf` with missing source id:
+  - fallback enabled: warning + fallback to Gemini or deterministic
+  - fallback disabled: fails with `Provider misconfigured`
 
-Course-to-URL mapping is stored in:
+Expected provider log:
 
-- `data/config/course-map.json`
+- `[INFO] Providers configured: gemini=true|false, chatpdf=true|false, deterministic=true`
 
-Preloaded with:
-
-- Accounting I BBA & DBAI & GBL
-- Business Law II (sections C, D E & F)
-- Macroeconomics in a Global Context Sec: F
-- Descriptive Statistics & Probability
-
-## 6. Resolver behavior
-
-Override precedence is deterministic:
-
-1. `sectionId`
-2. `topicNumber`
-3. `contains`
-4. historical anchor
-5. automatic inference
-
-Automatic mode biases:
-
-- topic/session number match
-- semantic keyword overlap
-- recency by section order/number
-- PDF/PPT density
-
-Material filtering:
-
-- only `pdf`/`ppt`
-- returns newest subset (`RESOLVER_RECENT_LIMIT`, default 2)
-
-## 7. Debug traces
+## 6. Debug traces
 
 Per run trace file:
 
@@ -118,11 +93,12 @@ Includes:
 - provider trace
 - schema validation trace
 
-## 8. APIs
+## 7. APIs
 
-Current endpoints (backward compatible + aliases):
+Current endpoints:
 
 - `GET /api/health`
+- `GET /api/config-status`
 - `GET /api/today`
 - `POST /api/autopilot/today`
 - `POST /api/run-today` (alias)
@@ -134,31 +110,9 @@ Current endpoints (backward compatible + aliases):
 - `GET /api/session/:sessionId/debug`
 - `GET /api/runs/latest`
 
-Provider override accepted on run endpoints:
-
-- `provider=auto|gemini|chatpdf|deterministic`
-
-Resolver runtime flags accepted:
-
-- `moodleDebug=true|false`
-- `requireAuth=true|false`
-
-## 9. Testing
+## 8. Testing
 
 ```bash
 npx tsc --noEmit
 npm test -- --runInBand
 ```
-
-## 10. What to provide for resolver calibration
-
-For each problematic Moodle course/page, provide:
-
-1. course URL
-2. target section name you expected
-3. resulting selected section from debug
-4. raw resolver trace (`data/storage/debug/<runId>.json`)
-5. HTML snapshot of the course page after expansion
-6. screenshot of the resource list
-
-This is enough to tune section ranking + file-type extraction for your exact Moodle theme.

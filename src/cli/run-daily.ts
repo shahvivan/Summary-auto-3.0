@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { config } from "../config.js";
 import { executeRun } from "../core/orchestrator/pipeline.js";
 import { createManualSession, getEventsForDate, toSession } from "../core/scheduler/engine.js";
@@ -12,6 +13,9 @@ function todayIso(): string {
 
 async function main(): Promise<void> {
   await initStorage();
+  logInfo(
+    `Providers configured: gemini=${config.geminiEnabled}, chatpdf=${config.chatpdfEnabled}, deterministic=${config.deterministicEnabled}`,
+  );
 
   const args = parseCliArgs(process.argv.slice(2));
   const date = (args.date as string | undefined) ?? todayIso();

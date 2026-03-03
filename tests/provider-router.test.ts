@@ -20,14 +20,99 @@ const chunks: TextChunk[] = [
   },
 ];
 
-test("provider router keeps offline workflows working when API keys are missing", async () => {
+function validSummaryJson(): string {
+  return JSON.stringify({
+    layer1KeyConcepts: ["Key concept A", "Key concept B"],
+    layer2StructuredExplanation: [
+      {
+        heading: "Conceptual Overview",
+        points: ["Point 1", "Point 2"],
+      },
+    ],
+    layer3DetailedNotes: ["Detailed note 1", "Detailed note 2"],
+    preparationTips: ["Tip 1"],
+    keyEquationsOrDefinitions: ["Definition 1"],
+  });
+}
+
+test("provider router chooses Gemini when ChatPDF is disabled (missing sourceId)", async () => {
+  let chatpdfCalled = false;
+
   const out = await summarizeWithProviderRouter({
     chunks,
     courseName: "Descriptive Statistics & Probability",
     provider: "auto",
     fallbackEnabled: true,
+    providers: {
+      gemini: {
+        name: "gemini",
+        isConfigured: () => true,
+        generate: async () => validSummaryJson(),
+      },
+      chatpdf: {
+        name: "chatpdf",
+        isConfigured: () => false,
+        generate: async () => {
+          chatpdfCalled = true;
+          throw new Error("chatpdf should not be called when disabled");
+        },
+      },
+    },
   });
 
-  assert.equal(out.providerTrace.finalProvider, "deterministic");
+  assert.equal(out.providerTrace.finalProvider, "gemini");
+  assert.equal(chatpdfCalled, false);
   assert.ok(out.summary.layer1KeyConcepts.length > 0);
+});
+
+test("provider router fails clearly when chatpdf is requested but misconfigured and fallback disabled", async () => {
+  await assert.rejects(
+    () =>
+      summarizeWithProviderRouter({
+        chunks,
+        courseName: "Descriptive Statistics & Probability",
+        provider: "chatpdf",
+        fallbackEnabled: false,
+        providers: {
+          gemini: {
+            name: "gemini",
+            isConfigured: () => true,
+            generate: async () => validSummaryJson(),
+          },
+          chatpdf: {
+            name: "chatpdf",
+            isConfigured: () => false,
+            generate: async () => {
+              throw new Error("chatpdf should not be called when disabled");
+            },
+          },
+        },
+      }),
+    /Provider misconfigured: chatpdf is not configured/,
+  );
+});
+
+test("provider router fails clearly when auto mode has no configured providers and fallback disabled", async () => {
+  await assert.rejects(
+    () =>
+      summarizeWithProviderRouter({
+        chunks,
+        courseName: "Descriptive Statistics & Probability",
+        provider: "auto",
+        fallbackEnabled: false,
+        providers: {
+          gemini: {
+            name: "gemini",
+            isConfigured: () => false,
+            generate: async () => validSummaryJson(),
+          },
+          chatpdf: {
+            name: "chatpdf",
+            isConfigured: () => false,
+            generate: async () => validSummaryJson(),
+          },
+        },
+      }),
+    /Provider misconfigured: no providers configured/,
+  );
 });

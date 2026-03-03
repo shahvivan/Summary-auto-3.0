@@ -1,7 +1,0 @@
-{
-  "sourceUrl": "mock://descriptive-statistics/topic-3-core-notes.pdf",
-  "sourceTitle": "Topic 3 Core Notes",
-  "text": "Topic 3 focuses on probability distributions.\nKey concepts: random variable, probability mass function, probability density function.\nThe mean and variance are computed differently for discrete and continuous distributions.\nBinomial and normal distributions are central models in applied statistics.",
-  "contentHash": "ba216db5",
-  "updatedAt": "2026-03-02T22:12:22.840Z"
-}

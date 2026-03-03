@@ -11,15 +11,15 @@ export class ChatPdfProvider {
   ) {}
 
   isConfigured(): boolean {
-    return this.apiKey.length > 0 && this.sourceId.length > 0;
+    return this.apiKey.trim().length > 0 && this.sourceId.trim().length > 0;
   }
 
   async generate(prompt: string): Promise<string> {
-    if (!this.apiKey) {
-      throw new Error("ChatPDF API key is missing (CHATPDF_API_KEY)");
+    if (!this.apiKey.trim()) {
+      throw new Error("Provider misconfigured: ChatPDF API key is missing (CHATPDF_API_KEY)");
     }
-    if (!this.sourceId) {
-      throw new Error("ChatPDF source id is missing (CHATPDF_SOURCE_ID)");
+    if (!this.sourceId.trim()) {
+      throw new Error("Provider misconfigured: ChatPDF source id is missing (CHATPDF_SOURCE_ID)");
     }
 
     const response = await fetch(CHATPDF_ENDPOINT, {

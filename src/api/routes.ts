@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { config } from "../config.js";
 import { Router } from "express";
 import { z } from "zod";
 import { executeRun, queueRun } from "../core/orchestrator/pipeline.js";
@@ -13,6 +14,7 @@ import {
   upsertSession,
 } from "../storage/sqlite.js";
 import type { SessionOverride, SummaryProviderMode } from "../types/domain.js";
+import { logInfo } from "../utils/logger.js";
 
 const providerEnum = z.enum(["auto", "gemini", "chatpdf", "deterministic"]);
 
@@ -69,6 +71,12 @@ async function runAutopilotToday(payload: {
 }) {
   const date = payload.date ?? todayIso();
   const events = await getEventsForDate(date);
+  const source = config.calendarUseIcs ? "ICS" : "MOCK";
+  logInfo(`Autopilot calendar events for ${date}: ${events.length} (${source})`);
+  if (events.length === 0) {
+    logInfo(`No sessions queued because ${source} source returned 0 events`, { date });
+  }
+
   const batchRunId = randomUUID();
 
   const sessionStates: Array<{ sessionId: string; status: string; runId: string }> = [];
@@ -91,6 +99,23 @@ export function createApiRouter(): Router {
 
   router.get("/health", (_req, res) => {
     res.json({ ok: true, ts: new Date().toISOString() });
+  });
+
+  router.get("/config-status", (_req, res) => {
+    res.json({
+      ok: true,
+      providers: {
+        geminiEnabled: config.geminiEnabled,
+        chatpdfEnabled: config.chatpdfEnabled,
+        deterministicEnabled: config.deterministicEnabled,
+        chatpdfMissingSourceId:
+          config.chatpdfApiKey.trim().length > 0 && config.chatpdfSourceId.trim().length === 0,
+      },
+      calendar: {
+        source: config.calendarUseIcs ? "ICS" : "MOCK",
+        allowMockFallback: config.allowMockFallback,
+      },
+    });
   });
 
   router.get("/today", async (req, res) => {

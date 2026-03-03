@@ -1,5 +1,0 @@
-2026/03/02-23:09:02.866 1d977d5 Creating DB /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Local Storage/leveldb since it was missing.
-2026/03/02-23:09:02.875 1d977d5 Reusing MANIFEST /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Local Storage/leveldb/MANIFEST-000001
-2026/03/02-23:10:02.881 1d977db Level-0 table #5: started
-2026/03/02-23:10:02.887 1d977db Level-0 table #5: 21471 bytes OK
-2026/03/02-23:10:02.895 1d977db Delete type=0 #3

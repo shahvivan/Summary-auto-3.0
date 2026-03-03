@@ -369,5 +369,10 @@ export async function summarizeWithProviderRouter(params: {
     }
   }
 
+  if (!params.fallbackEnabled) {
+    throw new Error("Provider misconfigured: no providers configured");
+  }
+
   return createDeterministicResult(params.chunks, params.courseName, requested, attempts, "no_provider_configured");
 }
+
