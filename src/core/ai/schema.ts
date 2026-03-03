@@ -2,19 +2,31 @@ import { z } from "zod";
 import type { SummaryOutput } from "../../types/domain.js";
 
 // ---------------------------------------------------------------------------
-// Multi-material schema — used when a single LLM call produces one summary
-// block per PDF/PPT document.
+// New single-layer SummaryOutput schema
+// ---------------------------------------------------------------------------
+export const summarySchema = z
+  .object({
+    overview: z.string().min(1),
+    keyConcepts: z.array(z.string().min(1)).min(1),
+    topicSections: z
+      .array(z.object({ heading: z.string().min(1), points: z.array(z.string().min(1)).min(1) }))
+      .min(1),
+    keyDefinitions: z.array(z.string()).default([]),
+  })
+  .strict();
+
+// ---------------------------------------------------------------------------
+// Multi-material schema — one summary block per PDF/PPT in a single LLM call.
 // ---------------------------------------------------------------------------
 const perMaterialSchema = z.object({
   resourceId: z.string().min(1),
   title: z.string().min(1),
-  layer1KeyConcepts: z.array(z.string().min(1)).min(1),
-  layer2StructuredExplanation: z
+  overview: z.string().min(1),
+  keyConcepts: z.array(z.string().min(1)).min(1),
+  topicSections: z
     .array(z.object({ heading: z.string().min(1), points: z.array(z.string().min(1)).min(1) }))
     .min(1),
-  layer3DetailedNotes: z.array(z.string().min(1)).min(1),
-  preparationTips: z.array(z.string().min(1)).optional(),
-  keyEquationsOrDefinitions: z.array(z.string().min(1)).optional(),
+  keyDefinitions: z.array(z.string()).default([]),
 });
 
 export const multiMaterialSchema = z.object({
@@ -40,60 +52,35 @@ export function parseMultiMaterialFromText(
     title: item.title,
     url: urlByResourceId.get(item.resourceId) ?? "",
     summary: normalizeSummaryOutput({
-      layer1KeyConcepts: item.layer1KeyConcepts,
-      layer2StructuredExplanation: item.layer2StructuredExplanation,
-      layer3DetailedNotes: item.layer3DetailedNotes,
-      preparationTips: item.preparationTips,
-      keyEquationsOrDefinitions: item.keyEquationsOrDefinitions,
+      overview: item.overview,
+      keyConcepts: item.keyConcepts,
+      topicSections: item.topicSections,
+      keyDefinitions: item.keyDefinitions,
     }),
   }));
 }
 
 /**
  * Compose a merged SummaryOutput from multiple per-material summaries.
- * Used to populate the backwards-compat `summaries` table row so that
- * old code paths (Latest Brief preview, Export) still have something to show.
+ * Used to populate the backwards-compat `summaries` table row (Latest Brief, Export).
  */
 export function composeMergedSummary(items: PerMaterialSummaryItem[]): SummaryOutput {
+  const overviews = items.map((m) => m.summary.overview).filter(Boolean);
   return {
-    layer1KeyConcepts: items.flatMap((m) => m.summary.layer1KeyConcepts),
-    layer2StructuredExplanation: items.flatMap((m) => m.summary.layer2StructuredExplanation),
-    layer3DetailedNotes: items.flatMap((m) => m.summary.layer3DetailedNotes),
-    preparationTips: items.flatMap((m) => m.summary.preparationTips ?? []).filter(Boolean),
-    keyEquationsOrDefinitions: items
-      .flatMap((m) => m.summary.keyEquationsOrDefinitions ?? [])
-      .filter(Boolean),
+    overview: overviews.join(" "),
+    keyConcepts: items.flatMap((m) => m.summary.keyConcepts),
+    topicSections: items.flatMap((m) => m.summary.topicSections),
+    keyDefinitions: items.flatMap((m) => m.summary.keyDefinitions),
   };
 }
-
-export const summarySchema = z
-  .object({
-    layer1KeyConcepts: z.array(z.string().min(1)).min(1),
-    layer2StructuredExplanation: z
-      .array(
-        z.object({
-          heading: z.string().min(1),
-          points: z.array(z.string().min(1)).min(1),
-        }),
-      )
-      .min(1),
-    layer3DetailedNotes: z.array(z.string().min(1)).min(1),
-    preparationTips: z.array(z.string().min(1)).optional(),
-    keyEquationsOrDefinitions: z.array(z.string().min(1)).optional(),
-  })
-  .strict();
 
 function compactStrings(values: string[]): string[] {
   const out: string[] = [];
   const seen = new Set<string>();
   for (const item of values) {
     const clean = item.replace(/\s+/g, " ").trim();
-    if (!clean) {
-      continue;
-    }
-    if (seen.has(clean.toLowerCase())) {
-      continue;
-    }
+    if (!clean) continue;
+    if (seen.has(clean.toLowerCase())) continue;
     seen.add(clean.toLowerCase());
     out.push(clean);
   }
@@ -102,18 +89,15 @@ function compactStrings(values: string[]): string[] {
 
 export function normalizeSummaryOutput(input: SummaryOutput): SummaryOutput {
   return {
-    layer1KeyConcepts: compactStrings(input.layer1KeyConcepts),
-    layer2StructuredExplanation: input.layer2StructuredExplanation
+    overview: (input.overview ?? "").replace(/\s+/g, " ").trim(),
+    keyConcepts: compactStrings(input.keyConcepts ?? []),
+    topicSections: (input.topicSections ?? [])
       .map((section) => ({
         heading: section.heading.replace(/\s+/g, " ").trim(),
         points: compactStrings(section.points),
       }))
       .filter((section) => section.heading.length > 0 && section.points.length > 0),
-    layer3DetailedNotes: compactStrings(input.layer3DetailedNotes),
-    preparationTips: input.preparationTips ? compactStrings(input.preparationTips) : undefined,
-    keyEquationsOrDefinitions: input.keyEquationsOrDefinitions
-      ? compactStrings(input.keyEquationsOrDefinitions)
-      : undefined,
+    keyDefinitions: compactStrings(input.keyDefinitions ?? []),
   };
 }
 

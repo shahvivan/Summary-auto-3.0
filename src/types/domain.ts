@@ -44,6 +44,7 @@ export interface CourseResource {
   mimetype?: string;
   uploadedAt?: string;
   orderIndex?: number;
+  subsectionLabel?: string;
 }
 
 export interface CourseSection {
@@ -67,6 +68,7 @@ export interface MaterialLink {
   type: "pdf" | "ppt";
   uploadedAt?: string;
   orderIndex?: number;
+  subsectionLabel?: string;
 }
 
 export interface ResolverScore {
@@ -113,6 +115,9 @@ export interface ParsedPdf {
   sourceTitle: string;
   sourceUrl: string;
   text: string;
+  /** Original PDF/PPT bytes — present when text extraction failed or was skipped.
+   *  Used by the Gemini Files API path for native multimodal summarisation. */
+  rawBytes?: Buffer;
 }
 
 export interface TextChunk {
@@ -124,11 +129,14 @@ export interface TextChunk {
 }
 
 export interface SummaryOutput {
-  layer1KeyConcepts: string[];
-  layer2StructuredExplanation: Array<{ heading: string; points: string[] }>;
-  layer3DetailedNotes: string[];
-  preparationTips?: string[];
-  keyEquationsOrDefinitions?: string[];
+  /** 2-3 sentences: what is this session about and why does it matter. */
+  overview: string;
+  /** Each entry is "Term: brief plain-language definition". */
+  keyConcepts: string[];
+  /** The main lecture content broken into logical sections. */
+  topicSections: Array<{ heading: string; points: string[] }>;
+  /** Exact formulas, equations, or precise textbook definitions to remember. */
+  keyDefinitions: string[];
 }
 
 export type SummaryProviderMode = "auto" | "gemini" | "chatpdf" | "deterministic";

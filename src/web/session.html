@@ -72,16 +72,7 @@
               </article>
 
               <article class="panel">
-                <div class="brief-toolbar">
-                  <p class="section-kicker" style="margin: 0">AI Briefs</p>
-                  <div style="display: flex; gap: 8px; align-items: center">
-                    <div class="tabs" id="globalLayerTabs">
-                      <button class="tab active" data-layer="1">L1</button>
-                      <button class="tab" data-layer="2">L2</button>
-                      <button class="tab" data-layer="3">L3</button>
-                    </div>
-                  </div>
-                </div>
+                <p class="section-kicker" style="margin: 0 0 12px 0">AI Learning Summary</p>
                 <!-- Per-PDF accordion panels injected by renderBrief() -->
                 <div id="perPdfPanels"></div>
                 <!-- Fallback: merged brief shown when no per-PDF summaries available -->
@@ -93,7 +84,7 @@
                   <p class="section-kicker" style="margin: 0">Sources</p>
                   <label class="small muted" style="display: flex; gap: 6px; align-items: center">
                     <input id="sourcesPdfOnly" type="checkbox" checked />
-                    Show only PDFs
+                    Show only documents
                   </label>
                 </div>
                 <div class="table-wrap">
@@ -201,7 +192,6 @@
         sessionId: null,
         detail: null,
         debug: null,
-        layer: "1",
         pollTimer: null,
         // Tracks the resource-IDs of the last-rendered per-PDF panels so we
         // can detect whether a full DOM rebuild is needed or just an in-place
@@ -328,12 +318,16 @@
           scan: state.debug?.resolver?.debug?.navigationSteps || [],
           resolve: [state.debug?.resolver?.debug?.selectedReason || "Resolver completed"],
           download: detail.materials.map((item) => `Material ready: ${item.title}`),
-          parse: [`Chunks generated: ${detail.summary ? detail.summary.layer3DetailedNotes.length : 0}`],
-          summarize: [
-            detail.run?.providerTrace
-              ? `Provider: ${detail.run.providerTrace.finalProvider}`
-              : "Summary generation pending",
-          ],
+          parse: [`Sections: ${detail.summary ? (detail.summary.topicSections?.length ?? 0) : 0}`],
+          summarize: (() => {
+            if (!detail.run?.providerTrace) return ["Summary generation pending"];
+            const provider = detail.run.providerTrace.finalProvider;
+            const matCount = detail.materialSummaries?.length ?? 0;
+            const matNote = matCount > 0 ? ` · ${matCount} material${matCount === 1 ? "" : "s"} · 1 call` : "";
+            const retries = detail.run.schemaValidationTrace?.attempts ?? 1;
+            const retryNote = retries > 1 ? ` · ${retries} schema attempts` : "";
+            return [`Provider: ${provider}${matNote}${retryNote}`];
+          })(),
           done: detail.run?.status === "done" ? ["Run completed"] : [],
         };
 
@@ -375,20 +369,59 @@
         }
       }
 
-      function summaryLayerHtml(summary, layer) {
+      function summaryHtml(summary) {
         if (!summary) return "<p class='muted'>Not available</p>";
-        if (layer === "1") {
-          return `<ul>${summary.layer1KeyConcepts.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+
+        const parts = [];
+
+        // Overview box
+        if (summary.overview) {
+          parts.push(`
+            <div style="background:var(--surface-2); border-left:3px solid var(--accent); border-radius:var(--r-md); padding:12px 16px; margin-bottom:18px; font-size:14px; line-height:1.6; color:var(--text-primary);">
+              ${escapeHtml(summary.overview)}
+            </div>`);
         }
-        if (layer === "2") {
-          return summary.layer2StructuredExplanation
-            .map(
-              (section) =>
-                `<div style="margin-bottom:12px"><strong>${escapeHtml(section.heading)}</strong><ul>${section.points.map((point) => `<li>${escapeHtml(point)}</li>`).join("")}</ul></div>`,
-            )
-            .join("");
+
+        // Key concepts
+        if (summary.keyConcepts && summary.keyConcepts.length > 0) {
+          parts.push(`
+            <div style="margin-bottom:18px;">
+              <div style="font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-secondary); margin-bottom:8px;">Key Concepts</div>
+              <ul style="margin:0; padding-left:20px; display:flex; flex-direction:column; gap:5px;">
+                ${summary.keyConcepts.map((item) => `<li style="font-size:14px; line-height:1.55;">${escapeHtml(item)}</li>`).join("")}
+              </ul>
+            </div>`);
         }
-        return `<ul>${summary.layer3DetailedNotes.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+
+        // Topic sections
+        if (summary.topicSections && summary.topicSections.length > 0) {
+          const sections = summary.topicSections.map((section) => `
+            <div style="margin-bottom:14px;">
+              <div style="font-weight:600; font-size:13px; color:var(--text-primary); margin-bottom:6px;">▸ ${escapeHtml(section.heading)}</div>
+              <ul style="margin:0; padding-left:20px; display:flex; flex-direction:column; gap:4px;">
+                ${section.points.map((point) => `<li style="font-size:13px; line-height:1.55; color:var(--text-secondary);">${escapeHtml(point)}</li>`).join("")}
+              </ul>
+            </div>`).join("");
+
+          parts.push(`
+            <div style="margin-bottom:18px;">
+              <div style="font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-secondary); margin-bottom:10px;">Topic Breakdown</div>
+              ${sections}
+            </div>`);
+        }
+
+        // Key definitions
+        if (summary.keyDefinitions && summary.keyDefinitions.length > 0) {
+          parts.push(`
+            <div style="margin-bottom:4px;">
+              <div style="font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-secondary); margin-bottom:8px;">Key Definitions &amp; Formulas</div>
+              <ul style="margin:0; padding-left:20px; display:flex; flex-direction:column; gap:5px;">
+                ${summary.keyDefinitions.map((item) => `<li style="font-size:13px; line-height:1.55; font-family:var(--font-mono, monospace); color:var(--text-primary);">${escapeHtml(item)}</li>`).join("")}
+              </ul>
+            </div>`);
+        }
+
+        return parts.join("") || "<p class='muted'>Summary content not available.</p>";
       }
 
       function renderBrief(detail) {
@@ -402,7 +435,7 @@
           perPdfContainer.innerHTML = matSummaries
             .map(
               (mat, idx) => `
-              <div class="pdf-panel" id="pdf-panel-${idx}" style="margin-top:16px; border:1px solid var(--border); border-radius:var(--r-lg); overflow:hidden;">
+              <div class="pdf-panel" id="pdf-panel-${idx}" style="${idx > 0 ? 'margin-top:16px;' : ''} border:1px solid var(--border); border-radius:var(--r-lg); overflow:hidden;">
                 <button
                   class="pdf-panel-header"
                   aria-expanded="${idx === 0 ? 'true' : 'false'}"
@@ -413,7 +446,7 @@
                   <span class="pdf-panel-chevron" style="transition:transform .2s; ${idx === 0 ? '' : 'transform:rotate(-90deg)'}">▾</span>
                 </button>
                 <div class="pdf-panel-body" id="pdf-panel-body-${idx}" style="${idx === 0 ? '' : 'display:none;'} padding:16px 18px;">
-                  ${summaryLayerHtml(mat.summary, state.layer)}
+                  ${summaryHtml(mat.summary)}
                 </div>
               </div>`,
             )
@@ -439,18 +472,17 @@
             fallback.innerHTML = "<p class='muted'>Summary not available yet.</p>";
             return;
           }
-          const layerLabels = { "1": "Layer 1: Ultra-Concise Key Concepts", "2": "Layer 2: Structured Explanation", "3": "Layer 3: Detailed Notes" };
-          fallback.innerHTML = `<h3>${layerLabels[state.layer] || ""}</h3>${summaryLayerHtml(summary, state.layer)}`;
+          fallback.innerHTML = summaryHtml(summary);
         }
       }
 
       function refreshPerPdfContent() {
-        // Re-render layer content inside already-open PDF panels without rebuilding DOM.
+        // Re-render content inside already-open PDF panels without rebuilding DOM.
         const matSummaries = state.detail?.materialSummaries || [];
         if (matSummaries.length === 0) return;
         matSummaries.forEach((mat, idx) => {
           const body = document.getElementById(`pdf-panel-body-${idx}`);
-          if (body) body.innerHTML = summaryLayerHtml(mat.summary, state.layer);
+          if (body) body.innerHTML = summaryHtml(mat.summary);
         });
       }
 
@@ -530,22 +562,7 @@
         );
       }
 
-      function wireLayerTabs() {
-        for (const tab of document.querySelectorAll("#globalLayerTabs .tab")) {
-          tab.addEventListener("click", () => {
-            state.layer = tab.dataset.layer;
-            for (const button of document.querySelectorAll("#globalLayerTabs .tab")) {
-              button.classList.toggle("active", button.dataset.layer === state.layer);
-            }
-            const matSummaries = state.detail?.materialSummaries || [];
-            if (matSummaries.length > 0) {
-              refreshPerPdfContent();
-            } else {
-              renderBrief(state.detail);
-            }
-          });
-        }
-      }
+      // Layer tabs removed — single detailed summary view replaces L1/L2/L3.
 
       async function loadSession() {
         if (!state.sessionId) return;
@@ -734,7 +751,6 @@
           .join("\n");
       });
 
-      wireLayerTabs();
       state.sessionId = sessionIdFromPath();
       if (!state.sessionId) {
         document.getElementById("sessionTitle").textContent = "Missing session id";

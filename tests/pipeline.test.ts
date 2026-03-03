@@ -23,7 +23,7 @@ test("pipeline generates deterministic summary for manual session", async () => 
   assert.equal(detail?.run?.runId, runId);
   assert.equal(detail?.run?.status, "done");
   assert.equal(detail?.resolverResult?.selectedSectionId, "sec-topic-3");
-  assert.ok((detail?.summary?.layer1KeyConcepts.length ?? 0) > 0);
+  assert.ok((detail?.summary?.keyConcepts.length ?? 0) > 0);
   assert.ok((detail?.materials.length ?? 0) === 2);
 });
 

@@ -8,7 +8,9 @@
       "Accounting I DBAI",
       "Accounting I GBL"
     ],
-    "url": "https://ecampus.esade.edu/course/view.php?id=44311"
+    "url": "https://ecampus.esade.edu/course/view.php?id=44311",
+    "subsectionFilter": "concepts",
+    "startingSession": 6
   },
   {
     "courseName": "Business Law II (sections C, D E & F)",

@@ -349,7 +349,6 @@
                       <div style="font-size:16px; font-weight:700;">${escapeHtml(session.courseName)}</div>
                       <div class="small" style="color: var(--navy-mid);">${escapeHtml(session.sessionLabel || "Session")}</div>
                       <div class="small muted">${escapeHtml(session.eventTitle)}</div>
-                      <div class="mono muted" style="margin-top:4px;">${escapeHtml(session.sessionId)}</div>
                     </div>
                     ${statusBadge(session.status)}
                   </div>
@@ -439,6 +438,10 @@
         const button = event.currentTarget;
         const sessionId = button.dataset.sessionId;
         if (!sessionId) return;
+        // Capture the pre-click label so we can restore it if the request fails.
+        // On success, refreshDashboard() re-renders the card and detaches this
+        // button from the DOM, so any assignment here has no visible effect.
+        const originalText = button.textContent;
         button.disabled = true;
         button.textContent = "Running...";
         try {
@@ -451,9 +454,11 @@
             }),
           });
           await refreshDashboard();
-        } finally {
+        } catch {
+          // Request or dashboard refresh failed — button is still in the DOM,
+          // restore it so the user can try again.
           button.disabled = false;
-          button.textContent = "Run Now";
+          button.textContent = originalText;
         }
       }
 

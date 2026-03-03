@@ -22,6 +22,7 @@ function cacheFile(courseKey: string, resourceId: string): string {
 export async function processPdfLinks(params: {
   courseKey: string;
   materialLinks: MaterialLink[];
+  cookieHeader?: string;
 }): Promise<{
   parsedPdfs: ParsedPdf[];
   chunks: TextChunk[];
@@ -62,29 +63,53 @@ export async function processPdfLinks(params: {
       continue;
     }
 
-    const downloaded = await downloadPdf({
-      resourceId: link.id,
-      title: link.title,
-      url: link.url,
-      type: link.type,
-    });
-    const text = await extractPdfText(downloaded);
-    const contentHash = shaLike(text);
+    let downloaded;
+    try {
+      downloaded = await downloadPdf({
+        resourceId: link.id,
+        title: link.title,
+        url: link.url,
+        type: link.type,
+        cookies: params.cookieHeader,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(`[pdf-pipeline] Skipping "${link.title}" — download failed: ${msg}`);
+      continue;
+    }
 
-    await ensureDir(path.dirname(file));
-    await writeJsonFile(file, {
-      sourceUrl: link.url,
-      sourceTitle: link.title,
-      text,
-      contentHash,
-      updatedAt: new Date().toISOString(),
-    } satisfies PdfCacheEntry);
+    let text = "";
+    try {
+      text = await extractPdfText(downloaded);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(`[pdf-pipeline] Text extraction failed for "${link.title}" — will use raw bytes for AI summarisation: ${msg}`);
+    }
+
+    // Even when text extraction fails, keep the downloaded bytes so the
+    // Gemini Files API path can summarise the PDF directly (handles scanned /
+    // image-based slides that pdf-parse cannot read).
+    const contentHash = shaLike(text || downloaded.bytes.toString("base64").slice(0, 256));
+
+    if (text.trim().length > 0) {
+      // Only cache when we have real extracted text.
+      await ensureDir(path.dirname(file));
+      await writeJsonFile(file, {
+        sourceUrl: link.url,
+        sourceTitle: link.title,
+        text,
+        contentHash,
+        updatedAt: new Date().toISOString(),
+      } satisfies PdfCacheEntry);
+    }
 
     parsedPdfs.push({
       resourceId: link.id,
       sourceTitle: link.title,
       sourceUrl: link.url,
       text,
+      // Attach raw bytes so the Gemini Files API path can use them directly.
+      rawBytes: text.trim().length === 0 ? downloaded.bytes : undefined,
     });
     materialRecords.push({
       resourceId: link.id,

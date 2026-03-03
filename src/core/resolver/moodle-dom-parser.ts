@@ -8,6 +8,7 @@ export interface RawMoodleResource {
   typeHint?: string;
   metaText?: string;
   orderIndex: number;
+  subsectionLabel?: string;
 }
 
 export interface RawMoodleSection {
@@ -80,6 +81,7 @@ export function parseSectionResources(sections: RawMoodleSection[]): CourseSecti
         type,
         uploadedAt,
         orderIndex: resource.orderIndex,
+        subsectionLabel: resource.subsectionLabel || undefined,
       };
       return normalized;
     }),
@@ -96,5 +98,6 @@ export function toMaterialLinks(resources: CourseResource[]): MaterialLink[] {
       type: resource.type as "pdf" | "ppt",
       uploadedAt: resource.uploadedAt,
       orderIndex: resource.orderIndex,
+      subsectionLabel: resource.subsectionLabel,
     }));
 }

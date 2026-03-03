@@ -1,3 +1,5 @@
-2026/03/03-12:48:32.936 1ddadeb Reusing MANIFEST /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/MANIFEST-000001
-2026/03/03-12:48:32.937 1ddadeb Recovering log #7
-2026/03/03-12:48:32.937 1ddadeb Reusing old log /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/000007.log 
+2026/03/03-19:36:09.489 1e17872 Reusing MANIFEST /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/MANIFEST-000001
+2026/03/03-19:36:09.490 1e17872 Recovering log #17
+2026/03/03-19:36:09.491 1e17872 Level-0 table #19: started
+2026/03/03-19:36:09.494 1e17872 Level-0 table #19: 42282 bytes OK
+2026/03/03-19:36:09.499 1e17872 Delete type=0 #17

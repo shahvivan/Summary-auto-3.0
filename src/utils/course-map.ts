@@ -7,6 +7,10 @@ const entrySchema = z.object({
   courseName: z.string(),
   aliases: z.array(z.string()).optional(),
   url: z.string().url(),
+  /** Only include PDFs/PPTs whose subsectionLabel contains this string (case-insensitive). */
+  subsectionFilter: z.string().optional(),
+  /** The current session number for this course (auto-incremented after each run). */
+  startingSession: z.number().int().optional(),
 });
 
 const mapSchema = z.array(entrySchema);

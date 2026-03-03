@@ -22,16 +22,15 @@ const chunks: TextChunk[] = [
 
 function validSummaryJson(): string {
   return JSON.stringify({
-    layer1KeyConcepts: ["Key concept A", "Key concept B"],
-    layer2StructuredExplanation: [
+    overview: "This session covers key concepts in probability and statistics.",
+    keyConcepts: ["Key concept A: definition A", "Key concept B: definition B"],
+    topicSections: [
       {
         heading: "Conceptual Overview",
         points: ["Point 1", "Point 2"],
       },
     ],
-    layer3DetailedNotes: ["Detailed note 1", "Detailed note 2"],
-    preparationTips: ["Tip 1"],
-    keyEquationsOrDefinitions: ["Definition 1"],
+    keyDefinitions: ["Definition 1: formal definition here"],
   });
 }
 
@@ -62,7 +61,7 @@ test("provider router chooses Gemini when ChatPDF is disabled (missing sourceId)
 
   assert.equal(out.providerTrace.finalProvider, "gemini");
   assert.equal(chatpdfCalled, false);
-  assert.ok(out.summary.layer1KeyConcepts.length > 0);
+  assert.ok(out.summary.keyConcepts.length > 0);
 });
 
 test("provider router fails clearly when chatpdf is requested but misconfigured and fallback disabled", async () => {

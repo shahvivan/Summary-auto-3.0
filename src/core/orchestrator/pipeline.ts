@@ -8,6 +8,7 @@ import {
   completeRun,
   createRun,
   failRun,
+  incrementSessionTracker,
   replaceMaterials,
   saveAnchor,
   saveMaterialSummaries,
@@ -52,9 +53,11 @@ export async function executeRun(
     const processed = await processPdfLinks({
       courseKey: session.courseKey,
       materialLinks: resolved.result.pdfLinks,
+      cookieHeader: resolved.cookieHeader,
     });
 
-    if (processed.chunks.length === 0) {
+    const hasPdfBytes = processed.parsedPdfs.some((pdf) => pdf.rawBytes && pdf.rawBytes.length > 0);
+    if (processed.chunks.length === 0 && !hasPdfBytes) {
       throw new Error("No text chunks were extracted from selected materials");
     }
 
@@ -115,6 +118,8 @@ export async function executeRun(
     }
 
     completeRun(runId);
+    // Auto-increment the session tracker so next class uses the next session number.
+    incrementSessionTracker(session.courseKey);
     return runId;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

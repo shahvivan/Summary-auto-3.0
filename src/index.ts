@@ -43,9 +43,20 @@ async function main(): Promise<void> {
     res.sendFile(path.join(webDir, "index.html"));
   });
 
-  app.listen(config.port, () => {
+  const server = app.listen(config.port, () => {
     logInfo(`Esade Autopilot running at http://localhost:${config.port}`);
   });
+
+  // Graceful shutdown — without this, tsx watch can't kill the process
+  // and gets stuck in the "Force killing" loop forever.
+  const shutdown = (signal: string) => {
+    logInfo(`Received ${signal}, shutting down...`);
+    server.close(() => process.exit(0));
+    // Force exit after 1 second if server.close() stalls (e.g. open connections)
+    setTimeout(() => process.exit(0), 1000).unref();
+  };
+  process.on("SIGINT", () => shutdown("SIGINT"));
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
 }
 
 main().catch((error) => {

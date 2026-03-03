@@ -35,48 +35,54 @@ export function generateDeterministicSummary(chunks: TextChunk[], courseName: st
   const combined = chunks.map((chunk) => chunk.text).join("\n");
   const sentences = splitSentences(combined);
 
-  const layer1 = unique(sentences.map((sentence) => clip(sentence, 140))).slice(0, 5);
+  // Overview: first 2-3 meaningful sentences
+  const overviewSentences = sentences.slice(0, 3).map((s) => clip(s, 200));
+  const overview =
+    overviewSentences.join(" ") ||
+    `This session covers key material for ${courseName}. Review the attached slides before class.`;
 
+  // Key concepts: terms and definitions
+  const keyConcepts = unique(
+    pickSentences(sentences, ["definition", "concept", "term", "defined as", "refers to", "is the", "is a"], 6).map(
+      (s) => clip(s, 180),
+    ),
+  );
+
+  // Topic sections: grouped by content type
   const conceptPoints = pickSentences(
     sentences,
-    ["definition", "concept", "variable", "model", "distribution", "theorem"],
+    ["concept", "variable", "model", "distribution", "theorem", "principle"],
     4,
   ).map((value) => clip(value));
 
   const methodPoints = pickSentences(
     sentences,
-    ["calculate", "method", "step", "formula", "algorithm", "compute"],
+    ["calculate", "method", "step", "formula", "algorithm", "compute", "approach"],
     4,
   ).map((value) => clip(value));
 
-  const interpretationPoints = pickSentences(
+  const applicationPoints = pickSentences(
     sentences,
-    ["interpret", "application", "example", "context", "business", "decision"],
+    ["interpret", "application", "example", "context", "business", "decision", "result"],
     4,
   ).map((value) => clip(value));
 
-  const layer3 = chunks.slice(0, 12).map((chunk) => `${chunk.sourceTitle}: ${clip(chunk.text, 240)}`);
+  const topicSections = [
+    { heading: "Core Concepts", points: conceptPoints.length > 0 ? conceptPoints : sentences.slice(0, 3).map((s) => clip(s)) },
+    { heading: "Methods and Procedures", points: methodPoints.length > 0 ? methodPoints : sentences.slice(3, 6).map((s) => clip(s)) },
+    { heading: "Applications and Examples", points: applicationPoints.length > 0 ? applicationPoints : sentences.slice(6, 9).map((s) => clip(s)) },
+  ].filter((section) => section.points.length > 0);
 
-  const prepTips = [
-    `Read Layer 1 and restate each concept in your own words for ${courseName}.`,
-    "Solve one worked example before class and verify each step.",
-    "Prepare one clarification question for the lecture.",
-  ];
-
-  const definitions = sentences
-    .filter((sentence) => /\b(is|defined as|equals|=)\b/i.test(sentence))
+  // Key definitions: sentences with equations or formal definitions
+  const keyDefinitions = sentences
+    .filter((sentence) => /\b(is|defined as|equals|=|formula|equation|≡|∝|∑|∫)\b/i.test(sentence))
     .slice(0, 5)
     .map((sentence) => clip(sentence));
 
   return {
-    layer1KeyConcepts: layer1,
-    layer2StructuredExplanation: [
-      { heading: "Conceptual Overview", points: conceptPoints },
-      { heading: "Methods and Procedures", points: methodPoints },
-      { heading: "Interpretation and Application", points: interpretationPoints },
-    ],
-    layer3DetailedNotes: layer3,
-    preparationTips: prepTips,
-    keyEquationsOrDefinitions: definitions,
+    overview,
+    keyConcepts: keyConcepts.length > 0 ? keyConcepts : [`${courseName}: Review the attached materials before class.`],
+    topicSections: topicSections.length > 0 ? topicSections : [{ heading: "Session Content", points: sentences.slice(0, 4).map((s) => clip(s)) }],
+    keyDefinitions,
   };
 }

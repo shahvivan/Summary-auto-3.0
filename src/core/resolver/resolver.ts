@@ -1,6 +1,6 @@
 import { loadMoodleCourses } from "../../adapters/moodle/mock-moodle.js";
 import { config } from "../../config.js";
-import { getAnchor } from "../../storage/sqlite.js";
+import { getAnchor, getSessionTracker, seedSessionTracker } from "../../storage/sqlite.js";
 import type {
   CourseSection,
   MaterialLink,
@@ -270,8 +270,16 @@ async function loadCourseForSession(
   navigationSteps: string[];
   domStats: ResolverDebug["domStats"];
   htmlSnapshot?: string;
+  cookieHeader?: string;
+  subsectionFilter?: string;
 }> {
   const mapped = await findCourseMapEntry(session.courseName);
+
+  // Seed session tracker from course-map config (only if not already in DB).
+  if (mapped?.startingSession !== undefined) {
+    seedSessionTracker(session.courseKey, mapped.startingSession);
+  }
+
   if (config.resolverUseLiveMoodle) {
     const live = await resolveCourseViaBrowser({
       courseName: session.courseName,
@@ -290,6 +298,8 @@ async function loadCourseForSession(
       navigationSteps: live.navigationSteps,
       domStats: live.domStats,
       htmlSnapshot: live.htmlSnapshot,
+      cookieHeader: live.cookieHeader,
+      subsectionFilter: mapped?.subsectionFilter,
     };
   }
 
@@ -330,6 +340,8 @@ async function loadCourseForSession(
       pptResources,
     },
     htmlSnapshot: undefined,
+    cookieHeader: undefined,
+    subsectionFilter: mapped?.subsectionFilter,
   };
 }
 
@@ -337,9 +349,14 @@ export async function resolveSessionMaterials(
   session: Session,
   override?: SessionOverride,
   options?: ResolveSessionMaterialsOptions,
-): Promise<{ courseId: string; courseName: string; result: ResolverResult }> {
+): Promise<{ courseId: string; courseName: string; result: ResolverResult; cookieHeader?: string }> {
   const anchor = getAnchor(session.courseKey);
-  const inferredTopicNumber = extractTopicNumber(`${session.eventTitle} ${session.sessionLabel ?? ""}`);
+  // Try to extract a topic number from the event title first; fall back to the
+  // session tracker (which is seeded from course-map.json and auto-incremented
+  // after each successful run, so it always points to the current session).
+  const titleTopicNumber = extractTopicNumber(`${session.eventTitle} ${session.sessionLabel ?? ""}`);
+  const trackerSession = titleTopicNumber === null ? getSessionTracker(session.courseKey) : null;
+  const inferredTopicNumber = titleTopicNumber ?? trackerSession;
 
   const loaded = await loadCourseForSession(session, inferredTopicNumber, options);
   const course = loaded.course;
@@ -402,7 +419,23 @@ export async function resolveSessionMaterials(
     throw new Error(`No PDF/PPT materials found in selected section: ${selectedSection.title}`);
   }
 
-  const chosenLinks = chooseLatestMaterials(selectedLinks);
+  // Apply per-course subsection filter (e.g. Accounting → "concepts" only).
+  const subsectionFilter = loaded.subsectionFilter
+    ? loaded.subsectionFilter.toLowerCase().trim()
+    : null;
+  const filteredLinks = subsectionFilter
+    ? selectedLinks.filter((link) => (link.subsectionLabel ?? "").toLowerCase().includes(subsectionFilter))
+    : selectedLinks;
+
+  // Warn but don't fail if the filter removed everything — fall back to the full set.
+  const effectiveLinks = filteredLinks.length > 0 ? filteredLinks : selectedLinks;
+  if (subsectionFilter && filteredLinks.length === 0) {
+    console.warn(
+      `[resolver] subsectionFilter "${subsectionFilter}" matched no materials in section "${selectedSection.title}" — using all ${selectedLinks.length} material(s) as fallback`,
+    );
+  }
+
+  const chosenLinks = chooseLatestMaterials(effectiveLinks);
 
   const topScore = scored[0]?.score ?? 1;
   const selectedScore = scored.find((entry) => entry.section.id === selectedSection?.id)?.score ?? topScore;
@@ -411,6 +444,7 @@ export async function resolveSessionMaterials(
   return {
     courseId: course.id,
     courseName: course.name,
+    cookieHeader: loaded.cookieHeader,
     result: {
       selectedSectionId: selectedSection.id,
       selectedSectionTitle: selectedSection.title,
@@ -430,8 +464,8 @@ export async function resolveSessionMaterials(
         domStats: loaded.domStats,
         pdfFilterStats: {
           inputResources: selectedSection.resources.length,
-          pdfResources: selectedLinks.filter((item) => item.type === "pdf").length,
-          pptResources: selectedLinks.filter((item) => item.type === "ppt").length,
+          pdfResources: effectiveLinks.filter((item) => item.type === "pdf").length,
+          pptResources: effectiveLinks.filter((item) => item.type === "ppt").length,
           selectedResources: chosenLinks.length,
         },
         htmlSnapshot: loaded.htmlSnapshot,

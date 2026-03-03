@@ -25,6 +25,14 @@ export interface BrowserResolveResult {
     pptResources: number;
   };
   htmlSnapshot?: string;
+  /** Moodle session cookies formatted as a Cookie header value (kept as fallback). */
+  cookieHeader?: string;
+  /**
+   * PDF/PPT files pre-downloaded inside the authenticated Playwright context,
+   * keyed by URL. Using context.request.get() shares the browser's session so
+   * pluginfile.php downloads always succeed — no cookie extraction needed.
+   */
+  preDownloadedFiles: Record<string, Buffer>;
 }
 
 function ensureLiveResolverConfigured(): void {
@@ -171,6 +179,37 @@ async function extractRawSections(page: import("playwright").Page): Promise<RawM
         if (!node) return "";
         return (node.textContent || "").replace(/\s+/g, " ").trim();
       },
+      // Walk a section container in DOM order, tracking the nearest preceding
+      // subsection heading (e.g. "Concepts", "Activities", "To practice") for
+      // each resource anchor.  Returns a Map<href, subsectionLabel>.
+      subsectionMap(container: Element): Map<string, string> {
+        const map = new Map<string, string>();
+        let current = "";
+        const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT);
+        let node = walker.nextNode() as Element | null;
+        while (node) {
+          const tag = node.tagName;
+          const cls = (node.getAttribute("class") || "").toLowerCase();
+          // Detect heading-like dividers used by Moodle themes for subsections
+          if (
+            /^H[2-6]$/.test(tag) ||
+            cls.includes("content-item-header") ||
+            cls.includes("activity-header") ||
+            cls.includes("section-header") ||
+            node.getAttribute("role") === "heading"
+          ) {
+            const label = (node.textContent || "").replace(/\s+/g, " ").trim();
+            // Only treat as a subsection divider if it's short (not a resource title)
+            if (label && label.length < 80) current = label;
+          }
+          if (tag === "A" && current) {
+            const href = (node as HTMLAnchorElement).href || node.getAttribute("href") || "";
+            if (href) map.set(href, current);
+          }
+          node = walker.nextNode() as Element | null;
+        }
+        return map;
+      },
     };
 
     const sectionSelectors = [
@@ -228,6 +267,7 @@ async function extractRawSections(page: import("playwright").Page): Promise<RawM
         ),
       );
 
+      const subMap = u.subsectionMap(sectionNode);
       const resources: RawMoodleSection["resources"] = [];
       const seen = new Set<string>();
 
@@ -264,6 +304,7 @@ async function extractRawSections(page: import("playwright").Page): Promise<RawM
           typeHint,
           metaText: lineText,
           orderIndex: resourceIndex,
+          subsectionLabel: subMap.get(href) || "",
         });
       }
 
@@ -354,6 +395,40 @@ export async function resolveCourseViaBrowser(params: BrowserResolveParams): Pro
     const heading = await page.locator("h1").first().textContent().catch(() => null);
     const htmlSnapshot = params.moodleDebug ? await page.content().catch(() => undefined) : undefined;
 
+    // Extract Moodle session cookies (kept as a fallback).
+    const allCookies = await context.cookies().catch(() => [] as Array<{ name: string; value: string }>);
+    const cookieHeader = allCookies.map((c) => `${c.name}=${c.value}`).join("; ") || undefined;
+
+    // Pre-download all PDF/PPT files using context.request.get() — this shares
+    // the browser's authenticated session and is far more reliable than passing
+    // cookies to a separate fetch() call (which fails with ESADE SSO/httpOnly cookies).
+    const preDownloadedFiles: Record<string, Buffer> = {};
+    const allResourceUrls = parsedSections.flatMap((section) =>
+      section.resources
+        .filter((r) => (r.type === "pdf" || r.type === "ppt") && r.url)
+        .map((r) => ({ url: r.url!, title: r.title })),
+    );
+    for (const { url, title } of allResourceUrls) {
+      try {
+        const resp = await context.request.get(url, { timeout: 45_000 });
+        if (resp.ok()) {
+          const body = await resp.body();
+          const prefix = body.slice(0, 5).toString("ascii");
+          if (!prefix.startsWith("<!") && !prefix.toLowerCase().startsWith("<html")) {
+            preDownloadedFiles[url] = Buffer.from(body);
+            navigationSteps.push(`Downloaded: ${title} (${(body.length / 1024).toFixed(0)} KB)`);
+          } else {
+            navigationSteps.push(`Skipped (HTML response — auth failed for): ${title}`);
+          }
+        } else {
+          navigationSteps.push(`Download failed (${resp.status()}): ${title}`);
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        navigationSteps.push(`Download error for "${title}": ${msg.slice(0, 80)}`);
+      }
+    }
+
     return {
       courseId: `live-${new URL(targetCourseUrl).searchParams.get("id") ?? "course"}`,
       courseName: heading?.trim() || params.courseName,
@@ -367,6 +442,8 @@ export async function resolveCourseViaBrowser(params: BrowserResolveParams): Pro
         pptResources,
       },
       htmlSnapshot,
+      cookieHeader,
+      preDownloadedFiles,
     };
   } finally {
     await context.close();

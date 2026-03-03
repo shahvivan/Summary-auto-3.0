@@ -140,6 +140,12 @@ export async function initStorage(): Promise<void> {
       created_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS session_trackers (
+      course_key TEXT PRIMARY KEY,
+      current_session INTEGER NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
     CREATE INDEX IF NOT EXISTS idx_sessions_date ON sessions(date);
     CREATE INDEX IF NOT EXISTS idx_sessions_course_key ON sessions(course_key);
     CREATE INDEX IF NOT EXISTS idx_runs_session_id ON runs(session_id);
@@ -825,6 +831,47 @@ export function clearAllRuns(): void {
     // Reset every session back to pending so cards show "Run Now" not an old status.
     db.prepare("UPDATE sessions SET status = 'pending', last_run_id = NULL").run();
   })();
+}
+
+/**
+ * Get the current session tracker for a course.
+ * Returns null if no tracker has been seeded yet.
+ */
+export function getSessionTracker(courseKey: string): number | null {
+  const row = getDb()
+    .prepare(`SELECT current_session FROM session_trackers WHERE course_key = ?`)
+    .get(courseKey) as { current_session: number } | undefined;
+  return row ? row.current_session : null;
+}
+
+/**
+ * Seed or overwrite the session tracker for a course (used when loading course-map config).
+ * Only seeds if no row exists yet so manual increments aren't overwritten on restart.
+ */
+export function seedSessionTracker(courseKey: string, session: number): void {
+  const now = nowIso();
+  getDb()
+    .prepare(
+      `INSERT INTO session_trackers(course_key, current_session, updated_at)
+       VALUES (?, ?, ?)
+       ON CONFLICT(course_key) DO NOTHING`,
+    )
+    .run(courseKey, session, now);
+}
+
+/**
+ * Increment the session counter for a course after a successful run.
+ * If no tracker exists, this is a no-op (the seed step is responsible for initialising).
+ */
+export function incrementSessionTracker(courseKey: string): void {
+  const now = nowIso();
+  getDb()
+    .prepare(
+      `UPDATE session_trackers
+       SET current_session = current_session + 1, updated_at = ?
+       WHERE course_key = ?`,
+    )
+    .run(now, courseKey);
 }
 
 export function getDbPath(): string {
