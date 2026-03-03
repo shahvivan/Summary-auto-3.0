@@ -402,30 +402,109 @@ export async function resolveCourseViaBrowser(params: BrowserResolveParams): Pro
     // Pre-download all PDF/PPT files using context.request.get() — this shares
     // the browser's authenticated session and is far more reliable than passing
     // cookies to a separate fetch() call (which fails with ESADE SSO/httpOnly cookies).
+    //
+    // KEY INSIGHT: Moodle resource URLs are typically mod/resource/view.php?id=xxx
+    // which returns an HTML viewer page (200 OK, HTML body) — NOT the file.
+    // We must navigate to that page in Playwright and extract the real pluginfile.php URL.
     const preDownloadedFiles: Record<string, Buffer> = {};
     const allResourceUrls = parsedSections.flatMap((section) =>
       section.resources
         .filter((r) => (r.type === "pdf" || r.type === "ppt") && r.url)
         .map((r) => ({ url: r.url!, title: r.title })),
     );
+
     for (const { url, title } of allResourceUrls) {
       try {
+        // Step 1: Try direct download first (works for pluginfile.php URLs)
         const resp = await context.request.get(url, { timeout: 45_000 });
         if (resp.ok()) {
           const body = await resp.body();
           const prefix = body.slice(0, 5).toString("ascii");
           if (!prefix.startsWith("<!") && !prefix.toLowerCase().startsWith("<html")) {
+            // Direct binary download — done.
             preDownloadedFiles[url] = Buffer.from(body);
             navigationSteps.push(`Downloaded: ${title} (${(body.length / 1024).toFixed(0)} KB)`);
-          } else {
-            navigationSteps.push(`Skipped (HTML response — auth failed for): ${title}`);
+            continue;
           }
+          // HTML response — this is a Moodle resource viewer page.
+          navigationSteps.push(`Direct fetch returned HTML for "${title}" — navigating view page to find real URL`);
         } else {
-          navigationSteps.push(`Download failed (${resp.status()}): ${title}`);
+          navigationSteps.push(`Direct fetch ${resp.status()} for "${title}" — trying view page navigation`);
+        }
+
+        // Step 2: Navigate to the resource view page and extract the real pluginfile.php URL.
+        // This handles mod/resource/view.php which embeds the file in an HTML wrapper.
+        const viewPage = await context.newPage();
+        try {
+          await viewPage.goto(url, { waitUntil: "domcontentloaded", timeout: 30_000 });
+
+          // Find the actual file URL — Moodle embeds it in several possible locations.
+          const fileUrl = await viewPage.evaluate(() => {
+            // Priority 1: direct <a href="...pluginfile.php..."> download links
+            const anchors = Array.from(document.querySelectorAll<HTMLAnchorElement>('a[href*="pluginfile.php"]'));
+            if (anchors.length > 0) {
+              // Prefer a link that looks like a direct download (not forcedownload=0)
+              const best = anchors.find((a) => a.href.includes("forcedownload=1")) || anchors[0];
+              return best!.href;
+            }
+            // Priority 2: <object data="...pluginfile.php..."> (inline PDF viewer)
+            const obj = document.querySelector<HTMLObjectElement>('object[data*="pluginfile.php"]');
+            if (obj?.data) return obj.data;
+            // Priority 3: <embed src="...pluginfile.php...">
+            const embed = document.querySelector<HTMLEmbedElement>('embed[src*="pluginfile.php"]');
+            if (embed?.src) return embed.src;
+            // Priority 4: <iframe src="...pluginfile.php...">
+            const iframe = document.querySelector<HTMLIFrameElement>('iframe[src*="pluginfile.php"]');
+            if (iframe?.src) return iframe.src;
+            // Priority 5: any link containing the word "pdf" or "ppt" in href
+            const fallback = document.querySelector<HTMLAnchorElement>('a[href*=".pdf"], a[href*=".pptx"], a[href*=".ppt"]');
+            if (fallback?.href) return fallback.href;
+            return null;
+          });
+
+          if (fileUrl) {
+            navigationSteps.push(`Found pluginfile URL for "${title}": ${fileUrl.slice(0, 100)}`);
+            const fileResp = await context.request.get(fileUrl, { timeout: 60_000 });
+            if (fileResp.ok()) {
+              const fileBody = await fileResp.body();
+              const filePrefix = fileBody.slice(0, 5).toString("ascii");
+              if (!filePrefix.startsWith("<!") && !filePrefix.toLowerCase().startsWith("<html")) {
+                // Key: store under ORIGINAL url so pipeline.ts lookup by link.url works.
+                preDownloadedFiles[url] = Buffer.from(fileBody);
+                navigationSteps.push(`Downloaded via view page: "${title}" (${(fileBody.length / 1024).toFixed(0)} KB)`);
+              } else {
+                navigationSteps.push(`pluginfile download returned HTML for "${title}" — auth may have expired`);
+              }
+            } else {
+              navigationSteps.push(`pluginfile download failed (${fileResp.status()}) for "${title}"`);
+            }
+          } else {
+            // Last resort: check if Moodle auto-redirected to the file already
+            const finalUrl = viewPage.url();
+            if (finalUrl.includes("pluginfile.php")) {
+              const fileResp = await context.request.get(finalUrl, { timeout: 60_000 });
+              if (fileResp.ok()) {
+                const fileBody = await fileResp.body();
+                const filePrefix = fileBody.slice(0, 5).toString("ascii");
+                if (!filePrefix.startsWith("<!") && !filePrefix.toLowerCase().startsWith("<html")) {
+                  preDownloadedFiles[url] = Buffer.from(fileBody);
+                  navigationSteps.push(`Downloaded via redirect for "${title}" (${(fileBody.length / 1024).toFixed(0)} KB)`);
+                } else {
+                  navigationSteps.push(`Redirect download returned HTML for "${title}"`);
+                }
+              } else {
+                navigationSteps.push(`Redirect download failed (${fileResp.status()}) for "${title}"`);
+              }
+            } else {
+              navigationSteps.push(`No pluginfile.php URL found on view page for "${title}" (landed: ${finalUrl.slice(0, 80)})`);
+            }
+          }
+        } finally {
+          await viewPage.close();
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
-        navigationSteps.push(`Download error for "${title}": ${msg.slice(0, 80)}`);
+        navigationSteps.push(`Download error for "${title}": ${msg.slice(0, 120)}`);
       }
     }
 

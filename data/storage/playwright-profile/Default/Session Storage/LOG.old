@@ -1,5 +1,22 @@
-2026/03/03-19:36:09.489 1e17872 Reusing MANIFEST /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/MANIFEST-000001
-2026/03/03-19:36:09.490 1e17872 Recovering log #17
-2026/03/03-19:36:09.491 1e17872 Level-0 table #19: started
-2026/03/03-19:36:09.494 1e17872 Level-0 table #19: 42282 bytes OK
-2026/03/03-19:36:09.499 1e17872 Delete type=0 #17
+2026/03/04-00:46:21.162 1e3a506 Reusing MANIFEST /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/MANIFEST-000001
+2026/03/04-00:46:21.164 1e3a506 Recovering log #50
+2026/03/04-00:46:21.166 1e3a506 Level-0 table #53: started
+2026/03/04-00:46:21.169 1e3a506 Level-0 table #53: 22432 bytes OK
+2026/03/04-00:46:21.169 1e3a506 Recovering log #52
+2026/03/04-00:46:21.170 1e3a506 Reusing old log /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/000052.log 
+2026/03/04-00:46:21.177 1e3a506 Delete type=0 #50
+2026/03/04-00:46:29.800 1e3a509 Level-0 table #55: started
+2026/03/04-00:46:29.809 1e3a509 Level-0 table #55: 42511 bytes OK
+2026/03/04-00:46:29.816 1e3a509 Delete type=0 #52
+2026/03/04-00:46:31.547 1e3a509 Level-0 table #57: started
+2026/03/04-00:46:31.551 1e3a509 Level-0 table #57: 42206 bytes OK
+2026/03/04-00:46:31.561 1e3a509 Delete type=0 #54
+2026/03/04-00:46:31.562 1e3a509 Compacting 4@0 + 1@1 files
+2026/03/04-00:46:31.576 1e3a509 Generated table #58@0: 119 keys, 526474 bytes
+2026/03/04-00:46:31.576 1e3a509 Compacted 4@0 + 1@1 files => 526474 bytes
+2026/03/04-00:46:31.577 1e3a509 compacted to: files[ 0 1 0 0 0 0 0 ]
+2026/03/04-00:46:31.578 1e3a509 Delete type=2 #49
+2026/03/04-00:46:31.578 1e3a509 Delete type=2 #57
+2026/03/04-00:46:31.578 1e3a509 Delete type=2 #55
+2026/03/04-00:46:31.578 1e3a509 Delete type=2 #51
+2026/03/04-00:46:31.578 1e3a509 Delete type=2 #53

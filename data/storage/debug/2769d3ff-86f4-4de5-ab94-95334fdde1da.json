@@ -1,0 +1,107 @@
+{
+  "runId": "2769d3ff-86f4-4de5-ab94-95334fdde1da",
+  "sessionId": "2026-03-03-accounting-i-bba-dbai-gbl-cdc3be48",
+  "courseKey": "accounting-i-bba-dbai-gbl",
+  "resolver": {
+    "selectedSectionId": "section-2",
+    "selectedSectionTitle": "PLANNING SESSION 6 File",
+    "pdfLinks": [
+      {
+        "id": "resource-2-1",
+        "title": "PLANNING SESSION 6 File",
+        "url": "https://ecampus.esade.edu/mod/resource/view.php?id=5149969",
+        "type": "pdf",
+        "orderIndex": 0
+      },
+      {
+        "id": "resource-2-4",
+        "title": "Session 6. Inventories.Slides File",
+        "url": "https://ecampus.esade.edu/mod/resource/view.php?id=5150011",
+        "type": "pdf",
+        "orderIndex": 3
+      }
+    ],
+    "debug": {
+      "allSections": [
+        {
+          "sectionId": "section-2",
+          "sectionTitle": "PLANNING SESSION 6 File",
+          "score": 12.4,
+          "reasons": [
+            "academicMarker",
+            "topicExact",
+            "orderBoost:2.20",
+            "topicRecency:6",
+            "resourceDensity:2"
+          ],
+          "pdfCount": 2
+        },
+        {
+          "sectionId": "section-11",
+          "sectionTitle": "PLANNING SESSION 6 File",
+          "score": 10.2,
+          "reasons": [
+            "academicMarker",
+            "topicExact",
+            "orderBoost:0.00",
+            "topicRecency:6",
+            "resourceDensity:2"
+          ],
+          "pdfCount": 2
+        }
+      ],
+      "overrideApplied": "automatic",
+      "confidenceScore": 1,
+      "selectedReason": "academicMarker, topicExact, orderBoost:2.20, topicRecency:6, resourceDensity:2",
+      "navigationSteps": [
+        "Opened Moodle base URL: https://ecampus.esade.edu/my/",
+        "Opened course URL: https://ecampus.esade.edu/course/view.php?id=44311",
+        "Activated tab/topic with number 6",
+        "Clicked global Expand all button",
+        "Expanded 4 individual collapsible controls",
+        "Direct fetch returned HTML for \"PLANNING SESSION 6 File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"PLANNING SESSION 6 File\": https://ecampus.esade.edu/pluginfile.php/187462252/mod_resource/content/10/25_planning6.pdf",
+        "Downloaded via view page: \"PLANNING SESSION 6 File\" (138 KB)",
+        "Direct fetch returned HTML for \"Session 6. Inventories.Slides File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Session 6. Inventories.Slides File\": https://ecampus.esade.edu/pluginfile.php/187462294/mod_resource/content/10/25_inventories%20.pdf",
+        "Downloaded via view page: \"Session 6. Inventories.Slides File\" (584 KB)",
+        "Direct fetch returned HTML for \"PLANNING SESSION 6 File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"PLANNING SESSION 6 File\": https://ecampus.esade.edu/pluginfile.php/187462252/mod_resource/content/10/25_planning6.pdf",
+        "Downloaded via view page: \"PLANNING SESSION 6 File\" (138 KB)",
+        "Direct fetch returned HTML for \"Session 6. Inventories.Slides File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Session 6. Inventories.Slides File\": https://ecampus.esade.edu/pluginfile.php/187462294/mod_resource/content/10/25_inventories%20.pdf",
+        "Downloaded via view page: \"Session 6. Inventories.Slides File\" (584 KB)"
+      ],
+      "domStats": {
+        "sectionCount": 2,
+        "resourceCount": 10,
+        "pdfResources": 4,
+        "pptResources": 0
+      },
+      "pdfFilterStats": {
+        "inputResources": 5,
+        "pdfResources": 2,
+        "pptResources": 0,
+        "selectedResources": 2
+      }
+    }
+  },
+  "providerTrace": {
+    "requestedProvider": "auto",
+    "finalProvider": "gemini",
+    "attempts": [
+      {
+        "provider": "gemini",
+        "ok": true
+      }
+    ]
+  },
+  "schemaValidationTrace": {
+    "attempts": 2,
+    "repairedAttempts": 1,
+    "providerPayloadErrors": [
+      "gemini: [\n  {\n    \"code\": \"too_small\",\n    \"minimum\": 1,\n    \"type\": \"array\",\n    \"inclusive\": true,\n    \"exact\": false,\n    \"message\": \"Array must contain at least 1 element(s)\",\n    \"path\": [\n      \"materials\",\n      0,\n      \"keyConcepts\"\n    ]\n  }\n]"
+    ]
+  },
+  "writtenAt": "2026-03-03T23:43:43.007Z"
+}

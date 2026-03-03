@@ -666,6 +666,17 @@ export function getSessionDetail(sessionId: string): SessionDetail | null {
       resolverResult = fromJson<ResolverResult>(row.resolver_result_json);
       summary = fromJson<SummaryOutput>(row.summary_json);
     }
+    // Fallback: if no summary row yet (run failed before writing), read resolver output
+    // from resolver_debug so the UI can show which section/PDFs were found.
+    if (!resolverResult) {
+      const debugRow = getDb()
+        .prepare(`SELECT payload_json FROM resolver_debug WHERE run_id = ?`)
+        .get(run.runId) as { payload_json: string } | undefined;
+      if (debugRow) {
+        const debugPayload = fromJson<{ resolver?: ResolverResult }>(debugRow.payload_json);
+        resolverResult = debugPayload?.resolver ?? null;
+      }
+    }
   }
 
   const materialRows = run
@@ -695,10 +706,13 @@ export function getSessionDetail(sessionId: string): SessionDetail | null {
 export function listLatestRuns(limit = 25): RunRecord[] {
   const rows = getDb()
     .prepare(
-      `SELECT run_id, session_id, course_key, status, stage, message, override_json, error,
-              provider_trace_json, schema_validation_trace_json, created_at, updated_at
-       FROM runs
-       ORDER BY created_at DESC
+      `SELECT r.run_id, r.session_id, r.course_key, r.status, r.stage, r.message,
+              r.override_json, r.error, r.provider_trace_json, r.schema_validation_trace_json,
+              r.created_at, r.updated_at,
+              s.course_name, s.date
+       FROM runs r
+       LEFT JOIN sessions s ON s.session_id = r.session_id
+       ORDER BY r.created_at DESC
        LIMIT ?`,
     )
     .all(limit) as Array<{
@@ -714,12 +728,16 @@ export function listLatestRuns(limit = 25): RunRecord[] {
     schema_validation_trace_json: string | null;
     created_at: string;
     updated_at: string;
+    course_name: string | null;
+    date: string | null;
   }>;
 
   return rows.map((row) => ({
     runId: row.run_id,
     sessionId: row.session_id,
     courseKey: row.course_key,
+    courseName: row.course_name ?? undefined,
+    date: row.date ?? undefined,
     status: row.status as RunRecord["status"],
     stage: row.stage as RunRecord["stage"],
     message: row.message ?? undefined,

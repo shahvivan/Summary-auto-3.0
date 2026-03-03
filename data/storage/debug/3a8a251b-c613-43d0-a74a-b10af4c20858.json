@@ -1,0 +1,93 @@
+{
+  "runId": "3a8a251b-c613-43d0-a74a-b10af4c20858",
+  "sessionId": "2026-03-03-accounting-i-bba-dbai-gbl-cdc3be48",
+  "courseKey": "accounting-i-bba-dbai-gbl",
+  "resolver": {
+    "selectedSectionId": "section-2",
+    "selectedSectionTitle": "Planning session 7 File",
+    "pdfLinks": [
+      {
+        "id": "resource-2-1",
+        "title": "Planning session 7 File",
+        "url": "https://ecampus.esade.edu/mod/resource/view.php?id=5150026",
+        "type": "pdf",
+        "orderIndex": 0
+      }
+    ],
+    "debug": {
+      "allSections": [
+        {
+          "sectionId": "section-2",
+          "sectionTitle": "Planning session 7 File",
+          "score": 15.25,
+          "reasons": [
+            "academicMarker",
+            "topicExact",
+            "historicalAnchor",
+            "orderBoost:2.20",
+            "topicRecency:7",
+            "resourceDensity:1"
+          ],
+          "pdfCount": 1
+        },
+        {
+          "sectionId": "section-12",
+          "sectionTitle": "Planning session 7 File",
+          "score": 9.55,
+          "reasons": [
+            "academicMarker",
+            "topicExact",
+            "orderBoost:0.00",
+            "topicRecency:7",
+            "resourceDensity:1"
+          ],
+          "pdfCount": 1
+        }
+      ],
+      "overrideApplied": "anchor",
+      "confidenceScore": 1,
+      "selectedReason": "historical anchor",
+      "navigationSteps": [
+        "Opened Moodle base URL: https://ecampus.esade.edu/my/",
+        "Opened course URL: https://ecampus.esade.edu/course/view.php?id=44311",
+        "Activated tab/topic with number 7",
+        "Clicked global Expand all button",
+        "Expanded 4 individual collapsible controls",
+        "Direct fetch returned HTML for \"Planning session 7 File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Planning session 7 File\": https://ecampus.esade.edu/pluginfile.php/187462309/mod_resource/content/9/25_planning7.pdf",
+        "Downloaded via view page: \"Planning session 7 File\" (138 KB)",
+        "Direct fetch returned HTML for \"Planning session 7 File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Planning session 7 File\": https://ecampus.esade.edu/pluginfile.php/187462309/mod_resource/content/9/25_planning7.pdf",
+        "Downloaded via view page: \"Planning session 7 File\" (138 KB)"
+      ],
+      "domStats": {
+        "sectionCount": 2,
+        "resourceCount": 4,
+        "pdfResources": 2,
+        "pptResources": 0
+      },
+      "pdfFilterStats": {
+        "inputResources": 2,
+        "pdfResources": 1,
+        "pptResources": 0,
+        "selectedResources": 1
+      }
+    }
+  },
+  "providerTrace": {
+    "requestedProvider": "auto",
+    "finalProvider": "gemini",
+    "attempts": [
+      {
+        "provider": "gemini",
+        "ok": true
+      }
+    ]
+  },
+  "schemaValidationTrace": {
+    "attempts": 1,
+    "repairedAttempts": 0,
+    "providerPayloadErrors": []
+  },
+  "writtenAt": "2026-03-03T23:46:42.864Z"
+}

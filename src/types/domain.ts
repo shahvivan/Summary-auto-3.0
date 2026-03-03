@@ -169,6 +169,10 @@ export interface RunRecord {
   runId: string;
   sessionId: string;
   courseKey: string;
+  /** Denormalised from sessions table — populated by listLatestRuns JOIN. */
+  courseName?: string;
+  /** Denormalised from sessions table — populated by listLatestRuns JOIN. */
+  date?: string;
   status: PipelineStatus;
   stage: PipelineStage;
   message?: string;

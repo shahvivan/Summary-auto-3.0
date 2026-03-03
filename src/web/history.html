@@ -43,29 +43,9 @@
       </main>
     </div>
 
+    <script src="/common.js"></script>
     <script>
-      function escapeHtml(input) {
-        return String(input)
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;")
-          .replaceAll("'", "&#039;");
-      }
-
-      async function jsonFetch(url, options) {
-        const res = await fetch(url, options);
-        const body = await res.json().catch(() => ({ ok: false, message: "Invalid JSON response" }));
-        if (!res.ok || body.ok === false) {
-          throw new Error(body.message || `Request failed (${res.status})`);
-        }
-        return body;
-      }
-
-      function badge(status) {
-        const value = status === "failed" ? "error" : status;
-        return `<span class="status-badge status-${escapeHtml(value)}"><span class="dot"></span>${escapeHtml(value)}</span>`;
-      }
+      // escapeHtml, jsonFetch, statusBadge provided by /common.js above.
 
       async function loadRuns() {
         const data = await jsonFetch("/api/runs/latest");
@@ -81,11 +61,11 @@
               <article class="card">
                 <div style="display:flex; justify-content:space-between; gap:10px;">
                   <div>
-                    <a href="/session/${encodeURIComponent(run.sessionId)}" style="font-weight:600">${escapeHtml(run.sessionId)}</a>
-                    <div class="small muted">Stage: ${escapeHtml(run.stage)} · Updated: ${escapeHtml(run.updatedAt)}</div>
-                    <div class="small muted">Provider: ${escapeHtml(run.providerTrace?.finalProvider || "-")}</div>
+                    <a href="/session/${encodeURIComponent(run.sessionId)}" style="font-weight:600">${escapeHtml(run.courseName || run.courseKey)}</a>
+                    <div class="small muted">${escapeHtml(run.date || "")} · Stage: ${escapeHtml(run.stage)} · ${run.status === "failed" ? `<span style="color:var(--danger)">${escapeHtml(run.error?.slice(0, 80) || "failed")}</span>` : escapeHtml(run.message || "")}</div>
+                    <div class="small muted">Provider: ${escapeHtml(run.providerTrace?.finalProvider || "-")} · Run: ${escapeHtml(run.runId.slice(0, 8))}</div>
                   </div>
-                  ${badge(run.status)}
+                  ${statusBadge(run.status)}
                 </div>
               </article>
             `,

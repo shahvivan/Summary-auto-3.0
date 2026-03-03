@@ -272,6 +272,7 @@ async function loadCourseForSession(
   htmlSnapshot?: string;
   cookieHeader?: string;
   subsectionFilter?: string;
+  preDownloadedFiles: Record<string, Buffer>;
 }> {
   const mapped = await findCourseMapEntry(session.courseName);
 
@@ -300,6 +301,7 @@ async function loadCourseForSession(
       htmlSnapshot: live.htmlSnapshot,
       cookieHeader: live.cookieHeader,
       subsectionFilter: mapped?.subsectionFilter,
+      preDownloadedFiles: live.preDownloadedFiles,
     };
   }
 
@@ -342,6 +344,7 @@ async function loadCourseForSession(
     htmlSnapshot: undefined,
     cookieHeader: undefined,
     subsectionFilter: mapped?.subsectionFilter,
+    preDownloadedFiles: {},
   };
 }
 
@@ -349,7 +352,7 @@ export async function resolveSessionMaterials(
   session: Session,
   override?: SessionOverride,
   options?: ResolveSessionMaterialsOptions,
-): Promise<{ courseId: string; courseName: string; result: ResolverResult; cookieHeader?: string }> {
+): Promise<{ courseId: string; courseName: string; result: ResolverResult; cookieHeader?: string; preDownloadedFiles: Record<string, Buffer> }> {
   const anchor = getAnchor(session.courseKey);
   // Try to extract a topic number from the event title first; fall back to the
   // session tracker (which is seeded from course-map.json and auto-incremented
@@ -445,6 +448,7 @@ export async function resolveSessionMaterials(
     courseId: course.id,
     courseName: course.name,
     cookieHeader: loaded.cookieHeader,
+    preDownloadedFiles: loaded.preDownloadedFiles,
     result: {
       selectedSectionId: selectedSection.id,
       selectedSectionTitle: selectedSection.title,

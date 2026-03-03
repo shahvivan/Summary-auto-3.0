@@ -170,6 +170,7 @@
       </div>
     </div>
 
+    <script src="/common.js"></script>
     <script>
       const STEP_IDS = ["scan", "resolve", "download", "parse", "summarize", "done"];
       const KNOWN_COURSES = [
@@ -186,64 +187,11 @@
         runsBySession: new Map(),
         activeOverrideSession: null,
         currentRunningCourse: "",
-        pollTimer: null,
       };
 
-      // --- Auto-polling ---------------------------------------------------
-      // Poll every 3 s while any session is running; stop when all settle.
-      function startPolling() {
-        if (state.pollTimer) return; // already polling
-        state.pollTimer = setInterval(async () => {
-          await refreshDashboard().catch(() => undefined);
-        }, 3000);
-      }
-      function stopPolling() {
-        if (state.pollTimer) {
-          clearInterval(state.pollTimer);
-          state.pollTimer = null;
-        }
-      }
-      // --------------------------------------------------------------------
-
-      function escapeHtml(input) {
-        return String(input)
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;")
-          .replaceAll("'", "&#039;");
-      }
-
-      async function jsonFetch(url, options) {
-        const res = await fetch(url, options);
-        const body = await res.json().catch(() => ({ ok: false, message: "Invalid JSON response" }));
-        if (!res.ok || body.ok === false) {
-          throw new Error(body.message || `Request failed (${res.status})`);
-        }
-        return body;
-      }
-
-      function statusBadge(status) {
-        const value = status === "failed" ? "error" : status;
-        return `<span class="status-badge status-${escapeHtml(value)}"><span class="dot"></span>${escapeHtml(value)}</span>`;
-      }
-
-      function stageToIndex(stage, status) {
-        if (status === "done") return 5;
-        if (status === "failed") {
-          if (stage === "parsing") return 3;
-          if (stage === "summarizing") return 4;
-          if (stage === "resolving") return 1;
-          if (stage === "downloading") return 2;
-          return 0;
-        }
-        if (stage === "resolving") return 1;
-        if (stage === "downloading") return 2;
-        if (stage === "parsing") return 3;
-        if (stage === "summarizing") return 4;
-        if (stage === "writing") return 5;
-        return 0;
-      }
+      // createPoller, escapeHtml, jsonFetch, statusBadge, stageToIndex
+      // are provided by /common.js loaded above.
+      const poller = createPoller(refreshDashboard);
 
       function renderStepper(run) {
         const index = stageToIndex(run?.stage || "queued", run?.status || "queued");
@@ -391,9 +339,9 @@
         // Auto-poll while something is running; stop once all sessions settle.
         const hasRunning = data.sessions.some((s) => s.status === "running");
         if (hasRunning) {
-          startPolling();
+          poller.start();
         } else {
-          stopPolling();
+          poller.stop();
         }
 
         const banner = document.getElementById("runningBanner");
@@ -429,7 +377,7 @@
 
         const detail = await jsonFetch(`/api/session/${encodeURIComponent(latestDone.sessionId)}`);
         titleEl.textContent = `${detail.detail.session.courseName} · ${detail.detail.session.sessionLabel || "Session"}`;
-        const points = detail.detail.summary?.layer1KeyConcepts || [];
+        const points = detail.detail.summary?.keyConcepts || [];
         bodyEl.innerHTML = `<ul>${points.slice(0, 8).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
         openEl.href = `/session/${encodeURIComponent(latestDone.sessionId)}`;
       }

@@ -178,6 +178,7 @@
       </main>
     </div>
 
+    <script src="/common.js"></script>
     <script>
       const PIPELINE_STEPS = [
         { id: "scan", title: "Scanning" },
@@ -192,63 +193,22 @@
         sessionId: null,
         detail: null,
         debug: null,
-        pollTimer: null,
         // Tracks the resource-IDs of the last-rendered per-PDF panels so we
         // can detect whether a full DOM rebuild is needed or just an in-place
         // content refresh.  null = no panels have been rendered yet.
         panelSignature: null,
       };
 
-      // Auto-polling: refresh the session page when a run is in progress.
-      function startPolling() {
-        if (state.pollTimer) return;
-        state.pollTimer = setInterval(async () => {
-          await loadSession().catch(() => undefined);
-        }, 3000);
-      }
-      function stopPolling() {
-        if (state.pollTimer) {
-          clearInterval(state.pollTimer);
-          state.pollTimer = null;
-        }
-      }
-
-      function escapeHtml(input) {
-        return String(input)
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;")
-          .replaceAll("'", "&#039;");
-      }
-
-      async function jsonFetch(url, options) {
-        const res = await fetch(url, options);
-        const body = await res.json().catch(() => ({ ok: false, message: "Invalid JSON response" }));
-        if (!res.ok || body.ok === false) {
-          throw new Error(body.message || `Request failed (${res.status})`);
-        }
-        return body;
-      }
-
-      function statusBadge(status) {
-        const value = status === "failed" ? "error" : status;
-        return `<span class="status-badge status-${escapeHtml(value)}"><span class="dot"></span>${escapeHtml(value)}</span>`;
-      }
+      // createPoller, escapeHtml, jsonFetch, statusBadge, stageToIndex
+      // are provided by /common.js loaded above.
+      // loadSession is defined below; forward-declare for createPoller.
+      let _sessionPoller;
+      function startPolling() { _sessionPoller?.start(); }
+      function stopPolling()  { _sessionPoller?.stop();  }
 
       function sessionIdFromPath() {
         const match = window.location.pathname.match(/\/session\/([^/]+)/);
         return match ? decodeURIComponent(match[1]) : null;
-      }
-
-      function stageToIndex(stage, status) {
-        if (status === "done") return 5;
-        if (stage === "resolving") return 1;
-        if (stage === "downloading") return 2;
-        if (stage === "parsing") return 3;
-        if (stage === "summarizing") return 4;
-        if (stage === "writing") return 5;
-        return 0;
       }
 
       function setSystemStatus(run) {
@@ -534,6 +494,11 @@
           document.getElementById("resolverSectionTitle").textContent = "No resolver output yet";
           document.getElementById("resolverSectionId").textContent = "-";
           document.getElementById("resolverOverride").textContent = "-";
+          // Reset confidence bar to 0 so it doesn't show stale data
+          const fill = document.getElementById("confidenceFill");
+          fill.style.width = "0%";
+          fill.classList.remove("low");
+          document.getElementById("confidenceLabel").textContent = "0%";
           return;
         }
 
@@ -659,21 +624,23 @@
 
       function summaryToMarkdown(title, summary) {
         if (!summary) return "";
-        return [
-          `## ${title}`,
-          "",
-          "### Layer 1",
-          ...summary.layer1KeyConcepts.map((item) => `- ${item}`),
-          "",
-          "### Layer 2",
-          ...summary.layer2StructuredExplanation.flatMap((item) => [
-            `#### ${item.heading}`,
-            ...item.points.map((point) => `- ${point}`),
-          ]),
-          "",
-          "### Layer 3",
-          ...summary.layer3DetailedNotes.map((item) => `- ${item}`),
-        ].join("\n");
+        const lines = [`## ${title}`, ""];
+        if (summary.overview) {
+          lines.push("### Overview", summary.overview, "");
+        }
+        if (summary.keyConcepts?.length) {
+          lines.push("### Key Concepts", ...summary.keyConcepts.map((item) => `- ${item}`), "");
+        }
+        if (summary.topicSections?.length) {
+          lines.push("### Topics");
+          for (const section of summary.topicSections) {
+            lines.push(`#### ${section.heading}`, ...section.points.map((p) => `- ${p}`), "");
+          }
+        }
+        if (summary.keyDefinitions?.length) {
+          lines.push("### Key Definitions", ...summary.keyDefinitions.map((item) => `- ${item}`), "");
+        }
+        return lines.join("\n");
       }
 
       function copyBrief() {
@@ -685,16 +652,7 @@
         }
         if (!state.detail?.summary) return;
         const s = state.detail.summary;
-        const text = [
-          "Layer 1",
-          ...s.layer1KeyConcepts.map((item) => `- ${item}`),
-          "",
-          "Layer 2",
-          ...s.layer2StructuredExplanation.flatMap((item) => [`## ${item.heading}`, ...item.points.map((point) => `- ${point}`)]),
-          "",
-          "Layer 3",
-          ...s.layer3DetailedNotes.map((item) => `- ${item}`),
-        ].join("\n");
+        const text = summaryToMarkdown("Summary", s);
         navigator.clipboard.writeText(text).catch(() => undefined);
       }
 
@@ -750,6 +708,10 @@
           .map((item) => `${item.sectionId}  ${item.sectionTitle}  (score=${item.score})`)
           .join("\n");
       });
+
+      // Initialise the poller here (after loadSession is defined) so the
+      // startPolling / stopPolling wrappers above have a live reference.
+      _sessionPoller = createPoller(() => loadSession());
 
       state.sessionId = sessionIdFromPath();
       if (!state.sessionId) {

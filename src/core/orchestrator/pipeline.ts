@@ -49,18 +49,54 @@ export async function executeRun(
     });
 
     updateRunStage(runId, "downloading", "Downloading PDF/PPT materials");
-    updateRunStage(runId, "parsing", "Extracting and chunking text");
-    const processed = await processPdfLinks({
-      courseKey: session.courseKey,
-      materialLinks: resolved.result.pdfLinks,
-      cookieHeader: resolved.cookieHeader,
-    });
 
-    const hasPdfBytes = processed.parsedPdfs.some((pdf) => pdf.rawBytes && pdf.rawBytes.length > 0);
-    if (processed.chunks.length === 0 && !hasPdfBytes) {
-      throw new Error("No text chunks were extracted from selected materials");
+    const pdfLinks = resolved.result.pdfLinks;
+    const preKeys = Object.keys(resolved.preDownloadedFiles ?? {});
+    console.log(`[pipeline] pdfLinks=${pdfLinks.length}, preDownloadedFiles=${preKeys.length}`);
+
+    // Save materials early — right after resolution — so sources panel populates
+    // even when downloads or summarisation later fail.
+    if (pdfLinks.length > 0) {
+      replaceMaterials({
+        runId,
+        sessionId: session.sessionId,
+        courseKey: session.courseKey,
+        sectionId: resolved.result.selectedSectionId,
+        sectionTitle: resolved.result.selectedSectionTitle,
+        materials: pdfLinks.map((link) => ({
+          resourceId: link.id,
+          title: link.title,
+          url: link.url,
+        })),
+      });
     }
 
+    const processed = await processPdfLinks({
+      courseKey: session.courseKey,
+      materialLinks: pdfLinks,
+      cookieHeader: resolved.cookieHeader,
+      preDownloadedFiles: resolved.preDownloadedFiles,
+    });
+
+    // Check for download failure BEFORE advancing the stage to "parsing".
+    // This ensures the UI stepper correctly shows "downloading" as the failed step,
+    // not "parsing". (If we set "parsing" first and then throw, the UI shows parsing failed.)
+    const hasPdfBytes = processed.parsedPdfs.some((pdf) => pdf.rawBytes && pdf.rawBytes.length > 0);
+    if (processed.chunks.length === 0 && !hasPdfBytes) {
+      // Build a detailed error that shows in the UI red banner
+      const diagLines = [
+        `pdfLinks found: ${pdfLinks.length}`,
+        pdfLinks.length > 0 ? `first link: "${pdfLinks[0]!.title}" | url: ${pdfLinks[0]!.url.slice(0, 120)}` : "no links found",
+        `preDownloaded files: ${preKeys.length}`,
+        preKeys.length > 0 && pdfLinks.length > 0
+          ? `URL match: ${pdfLinks[0]!.url === preKeys[0] ? "YES" : `NO — link="${pdfLinks[0]!.url.slice(0, 80)}" vs pre="${preKeys[0]!.slice(0, 80)}"`}`
+          : "",
+        processed.skipReasons.length > 0 ? `skip reasons: ${processed.skipReasons.join(" | ")}` : "",
+      ].filter(Boolean);
+      throw new Error(`Download failed — ${diagLines.join(" · ")}`);
+    }
+
+    updateRunStage(runId, "parsing", "Extracting and chunking text");
     updateRunStage(runId, "summarizing", "Generating structured summary");
 
     // Single LLM call: Gemini returns one summary block per PDF in one JSON response.
@@ -128,14 +164,21 @@ export async function executeRun(
   }
 }
 
+// Sequential run queue — ensures only one Playwright instance runs at a time.
+// launchPersistentContext() with the same --user-data-dir crashes if called
+// concurrently; serialising all runs here prevents the ProfileSingleton error.
+let _runQueue: Promise<unknown> = Promise.resolve();
+
 export function queueRun(
   session: Session,
   override?: SessionOverride,
   options?: { provider?: SummaryProviderMode; moodleDebug?: boolean; requireAuth?: boolean },
 ): { runId: string } {
   const runId = randomUUID();
-  void executeRun(session, override, runId, options).catch(() => {
-    // run status is already persisted as failed inside executeRun.
-  });
+  _runQueue = _runQueue.then(() =>
+    executeRun(session, override, runId, options).catch(() => {
+      // run status is already persisted as failed inside executeRun.
+    }),
+  );
   return { runId };
 }

@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 import { config } from "../config.js";
 import { Router } from "express";
 import { z } from "zod";
@@ -350,6 +352,100 @@ export function createApiRouter(): Router {
   router.get("/runs/latest", (_req, res) => {
     const runs = listLatestRuns(40);
     return res.json({ ok: true, runs });
+  });
+
+  // GET /api/run-today — backward-compatible alias (GET version of /run-today)
+  router.get("/run-today", async (req, res) => {
+    const date = (req.query.date as string | undefined) ?? todayIso();
+    try {
+      const out = await runAutopilotToday({ date });
+      return res.json({ ok: true, runId: out.batchRunId, sessions: out.sessions, date: out.date });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Autopilot failed";
+      return res.status(500).json(toError(message));
+    }
+  });
+
+  // GET /api/sessions — list all sessions for a given date (defaults to today)
+  router.get("/sessions", async (req, res) => {
+    const date = (req.query.date as string | undefined) ?? todayIso();
+    try {
+      const events = await getEventsForDate(date);
+      const sessions = events.map(toSession);
+      for (const session of sessions) {
+        upsertSession(session);
+      }
+    } catch {
+      // Fall through — return whatever is persisted
+    }
+    const sessions = listSessionsForDate(date);
+    return res.json({ ok: true, date, sessions });
+  });
+
+  // POST /api/session/:sessionId/rerun — re-queue the session without any overrides
+  // (used by the "Retry" / "Re-run" button in the session detail page)
+  router.post("/session/:sessionId/rerun", async (req, res) => {
+    const record = getSession(req.params.sessionId);
+    if (!record) {
+      return res.status(404).json(toError("Session not found", "not_found"));
+    }
+
+    try {
+      const session = {
+        sessionId: record.sessionId,
+        courseName: record.courseName,
+        courseKey: record.courseKey,
+        eventTitle: record.eventTitle,
+        date: record.date,
+        sessionLabel: record.sessionLabel,
+      };
+      const { runId } = queueRun(session, undefined, {});
+      return res.json({ ok: true, runId, sessionId: record.sessionId });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Rerun failed";
+      return res.status(500).json(toError(message));
+    }
+  });
+
+  // GET /api/moodle/status — check whether the Playwright profile looks authenticated.
+  // We don't launch Chromium here (too slow for a status check); instead we inspect
+  // whether the profile storage directory exists and has been written recently.
+  router.get("/moodle/status", (_req, res) => {
+    const profileDir = path.resolve("data/storage/playwright-profile");
+    const cookiesFile = path.join(profileDir, "Default", "Cookies");
+
+    let profileExists = false;
+    let lastModifiedMs: number | null = null;
+    try {
+      const stat = fs.statSync(profileDir);
+      profileExists = stat.isDirectory();
+    } catch {
+      profileExists = false;
+    }
+
+    if (profileExists) {
+      try {
+        const stat = fs.statSync(cookiesFile);
+        lastModifiedMs = stat.mtimeMs;
+      } catch {
+        // Cookies file may not exist yet
+      }
+    }
+
+    const ageMinutes = lastModifiedMs ? Math.round((Date.now() - lastModifiedMs) / 60_000) : null;
+    const likely_authenticated = profileExists && lastModifiedMs !== null && ageMinutes !== null && ageMinutes < 60 * 24;
+
+    return res.json({
+      ok: true,
+      profileExists,
+      lastModifiedMs,
+      ageMinutes,
+      likely_authenticated,
+      moodleBaseUrl: config.moodleBaseUrl || null,
+      note: likely_authenticated
+        ? "Profile looks active (cookies modified within 24h)"
+        : "Profile may be stale — run: npm run login:moodle",
+    });
   });
 
   return router;
