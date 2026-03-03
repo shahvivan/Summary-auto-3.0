@@ -137,17 +137,15 @@
         </div>
         <form id="overrideForm" class="stack">
           <div class="field">
-            <label for="overrideSectionId">1. Section ID</label>
-            <input id="overrideSectionId" name="sectionId" />
+            <label for="overrideTopicNumber">Topic / Session Number</label>
+            <input id="overrideTopicNumber" name="topicNumber" type="number" min="1" placeholder="e.g. 3" />
           </div>
           <div class="field">
-            <label for="overrideTopicNumber">2. Topic Number</label>
-            <input id="overrideTopicNumber" name="topicNumber" type="number" min="1" />
+            <label for="overrideContains">Keyword (optional)</label>
+            <input id="overrideContains" name="contains" placeholder="e.g. derivatives" />
           </div>
-          <div class="field">
-            <label for="overrideContains">3. Keyword Contains</label>
-            <input id="overrideContains" name="contains" />
-          </div>
+          <!-- sectionId kept as hidden fallback for API compatibility -->
+          <input type="hidden" id="overrideSectionId" name="sectionId" />
           <div class="field">
             <label for="overrideProvider">Provider</label>
             <select id="overrideProvider" name="provider">
@@ -172,10 +170,11 @@
     <script>
       const STEP_IDS = ["scan", "resolve", "download", "parse", "summarize", "done"];
       const KNOWN_COURSES = [
+        "(Challenge): Innovation and Sustainability Sec: F",
         "Accounting I BBA & DBAI & GBL",
         "Business Law II (sections C, D E & F)",
-        "Macroeconomics in a Global Context Sec: F",
         "Descriptive Statistics & Probability",
+        "Macroeconomics in a Global Context Sec: F",
       ];
 
       const state = {
@@ -462,6 +461,7 @@
       function openManualModal() {
         document.getElementById("manualDate").value = state.today;
         document.getElementById("manualProvider").value = document.getElementById("headerProvider").value;
+        refreshManualCourseOptions();
         toggleModal("manualModalRoot", true);
         validateIsolationWarning();
       }
@@ -561,6 +561,9 @@
           submit.textContent = "Apply & Run";
         }
       }
+
+      // Seed course dropdown immediately so it's ready before the dashboard fetch resolves.
+      refreshManualCourseOptions();
 
       document.getElementById("runAutopilotBtn").addEventListener("click", runAutopilot);
       document.getElementById("runningBannerRefresh").addEventListener("click", refreshDashboard);

@@ -1,22 +1,53 @@
 [
   {
     "courseName": "Accounting I BBA & DBAI & GBL",
-    "aliases": ["Accounting I", "Accounting"],
+    "aliases": [
+      "Accounting I",
+      "Accounting",
+      "Accounting I BBA",
+      "Accounting I DBAI",
+      "Accounting I GBL"
+    ],
     "url": "https://ecampus.esade.edu/course/view.php?id=44311"
   },
   {
     "courseName": "Business Law II (sections C, D E & F)",
-    "aliases": ["Business Law II", "Business Law"],
+    "aliases": [
+      "Business Law II",
+      "Business Law",
+      "Business Law II: Taxation",
+      "Business Law II Taxation"
+    ],
     "url": "https://ecampus.esade.edu/course/view.php?id=42694"
   },
   {
     "courseName": "Macroeconomics in a Global Context Sec: F",
-    "aliases": ["Macroeconomics in a Global Context", "Macroeconomics"],
+    "aliases": [
+      "Macroeconomics in a Global Context",
+      "Macroeconomics",
+      "Macroeconomics in a Global Context Sec F",
+      "Macroeconomics Global Context"
+    ],
     "url": "https://ecampus.esade.edu/course/view.php?id=44410"
   },
   {
+    "courseName": "(Challenge): Innovation and Sustainability Sec: F",
+    "aliases": [
+      "(Challenge): Innovation and Sustainability",
+      "Challenge Innovation and Sustainability",
+      "Innovation and Sustainability",
+      "(Challenge)"
+    ],
+    "url": "https://ecampus.esade.edu/course/view.php?id=45841"
+  },
+  {
     "courseName": "Descriptive Statistics & Probability",
-    "aliases": ["Descriptive Statistics", "Statistics & Probability"],
+    "aliases": [
+      "Descriptive Statistics",
+      "Statistics & Probability",
+      "Descriptive Statistics and Probability",
+      "Statistics and Probability"
+    ],
     "url": "https://ecampus.esade.edu/course/view.php?id=44077"
   }
 ]

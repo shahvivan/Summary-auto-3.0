@@ -14,7 +14,7 @@ import {
   upsertSession,
 } from "../storage/sqlite.js";
 import type { SessionOverride, SummaryProviderMode } from "../types/domain.js";
-import { logInfo } from "../utils/logger.js";
+import { logInfo, logWarn } from "../utils/logger.js";
 
 const providerEnum = z.enum(["auto", "gemini", "chatpdf", "deterministic"]);
 
@@ -120,9 +120,14 @@ export function createApiRouter(): Router {
 
   router.get("/today", async (req, res) => {
     const date = (req.query.date as string | undefined) ?? todayIso();
-    const events = await getEventsForDate(date);
-    for (const event of events) {
-      upsertSession(toSession(event));
+    try {
+      const events = await getEventsForDate(date);
+      for (const event of events) {
+        upsertSession(toSession(event));
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Calendar load failed";
+      logWarn(`/api/today: calendar events could not be loaded (${message}) — returning persisted sessions only`);
     }
 
     const sessions = listSessionsForDate(date);

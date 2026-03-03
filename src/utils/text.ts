@@ -23,11 +23,25 @@ export function tokenize(input: string): string[] {
 }
 
 export function extractTopicNumber(input: string): number | null {
-  const match = input.match(/(?:topic|week|unit|chapter|lecture|session|part)\s*(\d+)/i);
-  if (!match) {
-    return null;
-  }
-  return Number(match[1]);
+  // 1. Explicit academic label: "Topic 3", "Week 5", "Session 2", "Class 4", etc.
+  const labeled = input.match(
+    /\b(?:topic|week|unit|chapter|lecture|session|part|class|module|seminar|tutorial)\s*#?\s*(\d+)\b/i,
+  );
+  if (labeled) return Number(labeled[1]);
+
+  // 2. Ordinal before a label: "3rd session", "5th lecture"
+  const ordinal = input.match(/\b(\d+)(?:st|nd|rd|th)\s+(?:topic|week|session|lecture|class|unit|seminar)\b/i);
+  if (ordinal) return Number(ordinal[1]);
+
+  // 3. Bracketed number: "[3]", "[ 5 ]"  — common in ESADE/Outlook event titles
+  const bracketed = input.match(/\[\s*(\d+)\s*\]/);
+  if (bracketed) return Number(bracketed[1]);
+
+  // 4. Hash/pound prefix: "#5"
+  const hashed = input.match(/\B#(\d+)\b/);
+  if (hashed) return Number(hashed[1]);
+
+  return null;
 }
 
 export function nowIso(): string {

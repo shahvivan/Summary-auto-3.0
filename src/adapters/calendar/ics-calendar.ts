@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import { config } from "../../config.js";
 import type { ScheduleEvent } from "../../types/domain.js";
 import { findCourseMapEntry } from "../../utils/course-map.js";
-import { extractTopicNumber } from "../../utils/text.js";
+import { extractTopicNumber, shaLike } from "../../utils/text.js";
 
 interface ParsedVevent {
   uid?: string;
@@ -98,9 +98,11 @@ async function inferCourseName(summary: string): Promise<string> {
     return match.courseName;
   }
 
-  const hardSplit = summary.split(/[-:|]/, 1)[0]?.trim();
-  if (hardSplit) {
-    return hardSplit;
+  // Strip trailing professor/instructor block — e.g. " [Smith, John]" — before
+  // using the rest as the course name so we don't chop at an internal colon.
+  const withoutProf = summary.replace(/\s*\[[^\]]*\]\s*$/, "").trim();
+  if (withoutProf) {
+    return withoutProf;
   }
 
   return summary.trim();
@@ -116,6 +118,23 @@ async function loadIcsRawText(url: string): Promise<string> {
         throw new Error(`ICS request failed (${response.status})`);
       }
       return await response.text();
+    } catch (error) {
+      clearTimeout(timeout);
+      // Re-wrap low-level connection errors (ECONNRESET, terminated, etc.)
+      // into a clear message so callers get a useful Error, not a raw undici TypeError.
+      if (error instanceof Error) {
+        const isConnectionError =
+          error.message.includes("terminated") ||
+          error.message.includes("ECONNRESET") ||
+          error.message.includes("ENOTFOUND") ||
+          error.message.includes("ETIMEDOUT") ||
+          error.message.includes("aborted");
+        if (isConnectionError) {
+          throw new Error(`ICS fetch connection error (${error.message})`);
+        }
+        throw error;
+      }
+      throw new Error(`ICS fetch failed: ${String(error)}`);
     } finally {
       clearTimeout(timeout);
     }
@@ -145,7 +164,8 @@ export async function loadCalendarEventsFromIcs(icsUrl = config.calendarIcsUrl):
 
     const courseName = await inferCourseName(item.summary);
     results.push({
-      id: item.uid || `ics-${index + 1}`,
+      // Hash the long ICS UID to a short 8-char hex so session IDs stay readable.
+      id: item.uid ? shaLike(item.uid) : `ics-${index + 1}`,
       courseName,
       title: item.summary,
       date,

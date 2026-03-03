@@ -360,9 +360,11 @@ export function failRun(runId: string, message: string): void {
     return;
   }
 
+  // Keep the current stage so the UI stepper shows exactly which step failed.
+  // Only flip status → 'failed' and persist the error message.
   getDb()
     .prepare(
-      `UPDATE runs SET status = 'failed', stage = 'failed', message = ?, error = ?, updated_at = ? WHERE run_id = ?`,
+      `UPDATE runs SET status = 'failed', message = ?, error = ?, updated_at = ? WHERE run_id = ?`,
     )
     .run(message, message, now, runId);
 
