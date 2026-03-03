@@ -704,6 +704,23 @@ export function getLastSessionForCourseOnDate(courseKey: string, date: string): 
   };
 }
 
+/**
+ * Remove stale sessions for the same course+date that have a different session_id.
+ * This cleans up old hex-UID rows that accumulate when the session-ID hashing
+ * scheme changed, keeping only the canonical session.
+ */
+export function cleanupStaleSessionsForCourseDate(courseKey: string, date: string, keepSessionId: string): void {
+  getDb()
+    .prepare(
+      `DELETE FROM sessions
+       WHERE course_key = ?
+         AND date = ?
+         AND session_id != ?
+         AND session_id NOT LIKE '%-manual-%'`,
+    )
+    .run(courseKey, date, keepSessionId);
+}
+
 export function getDbPath(): string {
   return path.resolve(config.dbPath);
 }

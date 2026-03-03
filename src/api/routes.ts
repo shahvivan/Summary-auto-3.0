@@ -5,6 +5,7 @@ import { z } from "zod";
 import { executeRun, queueRun } from "../core/orchestrator/pipeline.js";
 import { createManualSession, getEventsForDate, toSession } from "../core/scheduler/engine.js";
 import {
+  cleanupStaleSessionsForCourseDate,
   getResolverDebug,
   getRun,
   getSession,
@@ -123,7 +124,11 @@ export function createApiRouter(): Router {
     try {
       const events = await getEventsForDate(date);
       for (const event of events) {
-        upsertSession(toSession(event));
+        const session = toSession(event);
+        upsertSession(session);
+        // Remove any stale rows for the same course+date that have a different ID
+        // (e.g. old raw hex-UID sessions created before the hashing scheme was added).
+        cleanupStaleSessionsForCourseDate(session.courseKey, session.date, session.sessionId);
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Calendar load failed";

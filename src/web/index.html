@@ -52,6 +52,11 @@
             </div>
           </header>
 
+          <section id="authExpiredBanner" class="running-banner" style="background:var(--danger,#c0392b);display:none;">
+            <div id="authExpiredBannerText">🔒 Moodle session expired — open a terminal and run: <strong>npm run login:moodle</strong></div>
+            <button id="authExpiredRefresh" class="btn btn-ghost">Dismiss</button>
+          </section>
+
           <section id="runningBanner" class="running-banner">
             <div id="runningBannerText"></div>
             <button id="runningBannerRefresh" class="btn btn-ghost">Refresh</button>
@@ -97,10 +102,8 @@
             <label for="manualKeyword">Keyword (optional)</label>
             <input id="manualKeyword" name="contains" placeholder="sorting" />
           </div>
-          <div class="field">
-            <label for="manualSectionId">Section ID (optional)</label>
-            <input id="manualSectionId" name="sectionId" />
-          </div>
+          <!-- sectionId kept as hidden fallback for API compatibility -->
+          <input type="hidden" id="manualSectionId" name="sectionId" />
           <div class="field">
             <label for="manualProvider">Provider</label>
             <select id="manualProvider" name="provider">
@@ -377,6 +380,11 @@
           document.getElementById("runningBannerText").textContent = "";
         }
 
+        // Show auth-expired banner if any recent run has an auth_required error.
+        const authBanner = document.getElementById("authExpiredBanner");
+        const needsLogin = data.runs.some((run) => run.error && run.error.includes("auth_required"));
+        authBanner.style.display = needsLogin ? "" : "none";
+
         await renderLatestBriefPanel(data.runs);
         refreshManualCourseOptions();
       }
@@ -565,6 +573,9 @@
       // Seed course dropdown immediately so it's ready before the dashboard fetch resolves.
       refreshManualCourseOptions();
 
+      document.getElementById("authExpiredRefresh").addEventListener("click", () => {
+        document.getElementById("authExpiredBanner").style.display = "none";
+      });
       document.getElementById("runAutopilotBtn").addEventListener("click", runAutopilot);
       document.getElementById("runningBannerRefresh").addEventListener("click", refreshDashboard);
       document.getElementById("openManualBtn").addEventListener("click", openManualModal);

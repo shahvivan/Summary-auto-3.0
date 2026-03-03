@@ -263,7 +263,12 @@ export async function resolveCourseViaBrowser(params: BrowserResolveParams): Pro
   const page = context.pages()[0] ?? (await context.newPage());
 
   try {
-    await page.goto(config.moodleBaseUrl, { waitUntil: "domcontentloaded", timeout: 45_000 });
+    // Use "load" (not "domcontentloaded") so that any SSO redirect chain
+    // (e.g. ESADE SAML → ecampus) has fully settled before we inspect the page.
+    await page.goto(config.moodleBaseUrl, { waitUntil: "load", timeout: 60_000 });
+    // If the browser is still on an intermediate auth page, wait a little
+    // longer for the final redirect to complete.
+    await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
     navigationSteps.push(`Opened Moodle base URL: ${config.moodleBaseUrl}`);
     if (params.moodleDebug) {
       navigationSteps.push(`Current URL after base open: ${page.url()}`);
