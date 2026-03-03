@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createApiRouter } from "./api/routes.js";
 import { config } from "./config.js";
-import { initStorage } from "./storage/sqlite.js";
+import { clearAllRuns, initStorage } from "./storage/sqlite.js";
 import { logInfo } from "./utils/logger.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -12,6 +12,9 @@ const __dirname = path.dirname(__filename);
 
 async function main(): Promise<void> {
   await initStorage();
+  // Clear all previous run history on every start — gives a clean slate each
+  // time the app is opened so stale errors and completed runs don't accumulate.
+  clearAllRuns();
   logInfo(
     `Providers configured: gemini=${config.geminiEnabled}, chatpdf=${config.chatpdfEnabled}, deterministic=${config.deterministicEnabled}`,
   );

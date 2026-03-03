@@ -41,6 +41,11 @@ export function extractTopicNumber(input: string): number | null {
   const hashed = input.match(/\B#(\d+)\b/);
   if (hashed) return Number(hashed[1]);
 
+  // 5. Leading number with separator: "1- Introduction", "2. Fiscal Policy", "3: Monetary..."
+  //    Used by Macroeconomics (and some other courses) to number sections without a keyword.
+  const leading = input.match(/^\s*(\d{1,2})\s*[-.:]\s+\S/);
+  if (leading) return Number(leading[1]);
+
   return null;
 }
 

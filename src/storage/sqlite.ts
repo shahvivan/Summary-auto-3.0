@@ -2,6 +2,7 @@ import Database from "better-sqlite3";
 import path from "node:path";
 import { config } from "../config.js";
 import type {
+  MaterialSummary,
   ProviderTrace,
   ResolverResult,
   RunRecord,
@@ -128,11 +129,23 @@ export async function initStorage(): Promise<void> {
       created_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS material_summaries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      run_id TEXT NOT NULL,
+      session_id TEXT NOT NULL,
+      resource_id TEXT NOT NULL,
+      resource_title TEXT NOT NULL,
+      resource_url TEXT NOT NULL,
+      summary_json TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
     CREATE INDEX IF NOT EXISTS idx_sessions_date ON sessions(date);
     CREATE INDEX IF NOT EXISTS idx_sessions_course_key ON sessions(course_key);
     CREATE INDEX IF NOT EXISTS idx_runs_session_id ON runs(session_id);
     CREATE INDEX IF NOT EXISTS idx_materials_session_run ON materials(session_id, run_id);
     CREATE INDEX IF NOT EXISTS idx_summaries_session ON summaries(session_id);
+    CREATE INDEX IF NOT EXISTS idx_material_summaries_run ON material_summaries(run_id);
   `);
 
   ensureColumn("runs", "provider_trace_json", "TEXT");
@@ -581,6 +594,54 @@ export function saveSummary(params: {
     .run(params.runId, params.sessionId, params.courseKey, toJson(params.resolverResult), toJson(params.summary), now);
 }
 
+export function saveMaterialSummaries(params: {
+  runId: string;
+  sessionId: string;
+  items: Array<{ resourceId: string; title: string; url: string; summary: SummaryOutput }>;
+}): void {
+  const now = nowIso();
+  const tx = getDb().transaction(() => {
+    getDb().prepare(`DELETE FROM material_summaries WHERE run_id = ?`).run(params.runId);
+    const stmt = getDb().prepare(
+      `INSERT INTO material_summaries(run_id, session_id, resource_id, resource_title, resource_url, summary_json, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    );
+    for (const item of params.items) {
+      stmt.run(params.runId, params.sessionId, item.resourceId, item.title, item.url, toJson(item.summary), now);
+    }
+  });
+  tx();
+}
+
+export function getMaterialSummaries(runId: string): MaterialSummary[] {
+  const rows = getDb()
+    .prepare(
+      `SELECT resource_id, resource_title, resource_url, summary_json
+       FROM material_summaries
+       WHERE run_id = ?
+       ORDER BY id ASC`,
+    )
+    .all(runId) as Array<{
+    resource_id: string;
+    resource_title: string;
+    resource_url: string;
+    summary_json: string;
+  }>;
+
+  return rows
+    .map((row) => {
+      const summary = fromJson<SummaryOutput>(row.summary_json);
+      if (!summary) return null;
+      return {
+        resourceId: row.resource_id,
+        title: row.resource_title,
+        url: row.resource_url,
+        summary,
+      } satisfies MaterialSummary;
+    })
+    .filter((item): item is MaterialSummary => item !== null);
+}
+
 export function getSessionDetail(sessionId: string): SessionDetail | null {
   const session = getSession(sessionId);
   if (!session) {
@@ -609,6 +670,8 @@ export function getSessionDetail(sessionId: string): SessionDetail | null {
         .all(run.runId) as Array<{ resource_id: string; resource_title: string; resource_url: string }>)
     : [];
 
+  const materialSummaries = run ? getMaterialSummaries(run.runId) : [];
+
   return {
     session,
     run,
@@ -619,6 +682,7 @@ export function getSessionDetail(sessionId: string): SessionDetail | null {
       title: row.resource_title,
       url: row.resource_url,
     })),
+    materialSummaries,
   };
 }
 
@@ -719,6 +783,48 @@ export function cleanupStaleSessionsForCourseDate(courseKey: string, date: strin
          AND session_id NOT LIKE '%-manual-%'`,
     )
     .run(courseKey, date, keepSessionId);
+}
+
+/**
+ * After a successful ICS load, remove any non-manual sessions for `date` whose
+ * session_id is NOT in `keepSessionIds`. This eliminates ghost cards for courses
+ * that were renamed, had their course-key change, or simply aren't scheduled today.
+ */
+export function cleanupOrphanedSessions(date: string, keepSessionIds: Set<string>): void {
+  if (keepSessionIds.size === 0) {
+    // If ICS returned nothing, don't wipe everything — could be an empty day.
+    return;
+  }
+  const ids = Array.from(keepSessionIds);
+  const placeholders = ids.map(() => "?").join(", ");
+  getDb()
+    .prepare(
+      `DELETE FROM sessions
+       WHERE date = ?
+         AND session_id NOT IN (${placeholders})
+         AND session_id NOT LIKE '%-manual-%'`,
+    )
+    .run(date, ...ids);
+}
+
+/**
+ * Clear all run history so the dashboard shows a clean slate on next open.
+ * Also resets each session's `last_run_id` and `status` so sessions appear
+ * as "not run" rather than carrying over error/completed state.
+ *
+ * Call this at server startup so every `npm run dev` starts fresh.
+ */
+export function clearAllRuns(): void {
+  const db = getDb();
+  db.transaction(() => {
+    db.prepare("DELETE FROM material_summaries").run();
+    db.prepare("DELETE FROM summaries").run();
+    db.prepare("DELETE FROM materials").run();
+    db.prepare("DELETE FROM resolver_debug").run();
+    db.prepare("DELETE FROM runs").run();
+    // Reset every session back to pending so cards show "Run Now" not an old status.
+    db.prepare("UPDATE sessions SET status = 'pending', last_run_id = NULL").run();
+  })();
 }
 
 export function getDbPath(): string {

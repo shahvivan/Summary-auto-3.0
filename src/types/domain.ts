@@ -172,12 +172,20 @@ export interface RunRecord {
   updatedAt: string;
 }
 
+export interface MaterialSummary {
+  resourceId: string;
+  title: string;
+  url: string;
+  summary: SummaryOutput;
+}
+
 export interface SessionDetail {
   session: SessionRecord;
   run: RunRecord | null;
   resolverResult: ResolverResult | null;
   summary: SummaryOutput | null;
   materials: Array<{ resourceId: string; title: string; url: string }>;
+  materialSummaries: MaterialSummary[];
 }
 
 export interface BacktestResult {

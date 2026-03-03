@@ -186,7 +186,24 @@
         runsBySession: new Map(),
         activeOverrideSession: null,
         currentRunningCourse: "",
+        pollTimer: null,
       };
+
+      // --- Auto-polling ---------------------------------------------------
+      // Poll every 3 s while any session is running; stop when all settle.
+      function startPolling() {
+        if (state.pollTimer) return; // already polling
+        state.pollTimer = setInterval(async () => {
+          await refreshDashboard().catch(() => undefined);
+        }, 3000);
+      }
+      function stopPolling() {
+        if (state.pollTimer) {
+          clearInterval(state.pollTimer);
+          state.pollTimer = null;
+        }
+      }
+      // --------------------------------------------------------------------
 
       function escapeHtml(input) {
         return String(input)
@@ -371,6 +388,15 @@
         setSystemStatus(runningSession, erroredSession);
 
         state.currentRunningCourse = runningSession?.session?.courseName || "";
+
+        // Auto-poll while something is running; stop once all sessions settle.
+        const hasRunning = data.sessions.some((s) => s.status === "running");
+        if (hasRunning) {
+          startPolling();
+        } else {
+          stopPolling();
+        }
+
         const banner = document.getElementById("runningBanner");
         if (runningSession) {
           banner.classList.add("show");

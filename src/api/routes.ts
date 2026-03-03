@@ -5,6 +5,7 @@ import { z } from "zod";
 import { executeRun, queueRun } from "../core/orchestrator/pipeline.js";
 import { createManualSession, getEventsForDate, toSession } from "../core/scheduler/engine.js";
 import {
+  cleanupOrphanedSessions,
   cleanupStaleSessionsForCourseDate,
   getResolverDebug,
   getRun,
@@ -123,13 +124,19 @@ export function createApiRouter(): Router {
     const date = (req.query.date as string | undefined) ?? todayIso();
     try {
       const events = await getEventsForDate(date);
-      for (const event of events) {
-        const session = toSession(event);
+      const sessions = events.map(toSession);
+
+      for (const session of sessions) {
         upsertSession(session);
-        // Remove any stale rows for the same course+date that have a different ID
-        // (e.g. old raw hex-UID sessions created before the hashing scheme was added).
+        // Also clean same-courseKey stale rows (e.g. old hex-UID rows for same event).
         cleanupStaleSessionsForCourseDate(session.courseKey, session.date, session.sessionId);
       }
+
+      // Sweep: delete any non-manual session for this date that the ICS no longer
+      // includes — catches ghost cards from renamed courses, old courseKeys, or
+      // courses not scheduled today (e.g. "(Challenge)" or "Descriptive Statistics"
+      // left over from earlier runs).
+      cleanupOrphanedSessions(date, new Set(sessions.map((s) => s.sessionId)));
     } catch (error) {
       const message = error instanceof Error ? error.message : "Calendar load failed";
       logWarn(`/api/today: calendar events could not be loaded (${message}) — returning persisted sessions only`);

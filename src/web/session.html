@@ -73,15 +73,18 @@
 
               <article class="panel">
                 <div class="brief-toolbar">
-                  <p class="section-kicker" style="margin: 0">AI Brief</p>
+                  <p class="section-kicker" style="margin: 0">AI Briefs</p>
                   <div style="display: flex; gap: 8px; align-items: center">
-                    <div class="tabs">
-                      <button class="tab active" data-layer="1">1</button>
-                      <button class="tab" data-layer="2">2</button>
-                      <button class="tab" data-layer="3">3</button>
+                    <div class="tabs" id="globalLayerTabs">
+                      <button class="tab active" data-layer="1">L1</button>
+                      <button class="tab" data-layer="2">L2</button>
+                      <button class="tab" data-layer="3">L3</button>
                     </div>
                   </div>
                 </div>
+                <!-- Per-PDF accordion panels injected by renderBrief() -->
+                <div id="perPdfPanels"></div>
+                <!-- Fallback: merged brief shown when no per-PDF summaries available -->
                 <div id="briefBody" class="markdown"></div>
               </article>
 
@@ -97,9 +100,8 @@
                   <table>
                     <thead>
                       <tr>
-                        <th>File Name</th>
+                        <th>File</th>
                         <th>Status</th>
-                        <th>Cached</th>
                         <th>Action</th>
                       </tr>
                     </thead>
@@ -129,20 +131,17 @@
               <article id="overridesCard" class="panel">
                 <p class="section-kicker">Overrides</p>
                 <form id="overridesForm" class="stack">
+                  <!-- Section ID hidden — not exposed to user -->
+                  <input type="hidden" id="ovSectionId" name="sectionId" />
                   <div class="field">
-                    <label for="ovSectionId">1. Section ID</label>
-                    <input id="ovSectionId" name="sectionId" />
+                    <label for="ovTopicNumber">1. Topic Number</label>
+                    <input id="ovTopicNumber" name="topicNumber" type="number" min="1" />
                     <div class="small muted">Highest priority</div>
                   </div>
                   <div class="field">
-                    <label for="ovTopicNumber">2. Topic Number</label>
-                    <input id="ovTopicNumber" name="topicNumber" type="number" min="1" />
-                    <div class="small muted">Used if no section ID</div>
-                  </div>
-                  <div class="field">
-                    <label for="ovContains">3. Keyword Contains</label>
+                    <label for="ovContains">2. Keyword Contains</label>
                     <input id="ovContains" name="contains" />
-                    <div class="small muted">Used if no section ID/topic</div>
+                    <div class="small muted">Used if no topic number</div>
                   </div>
                   <div class="field">
                     <label for="ovProvider">Provider</label>
@@ -203,7 +202,26 @@
         detail: null,
         debug: null,
         layer: "1",
+        pollTimer: null,
+        // Tracks the resource-IDs of the last-rendered per-PDF panels so we
+        // can detect whether a full DOM rebuild is needed or just an in-place
+        // content refresh.  null = no panels have been rendered yet.
+        panelSignature: null,
       };
+
+      // Auto-polling: refresh the session page when a run is in progress.
+      function startPolling() {
+        if (state.pollTimer) return;
+        state.pollTimer = setInterval(async () => {
+          await loadSession().catch(() => undefined);
+        }, 3000);
+      }
+      function stopPolling() {
+        if (state.pollTimer) {
+          clearInterval(state.pollTimer);
+          state.pollTimer = null;
+        }
+      }
 
       function escapeHtml(input) {
         return String(input)
@@ -357,50 +375,121 @@
         }
       }
 
-      function renderBrief(detail) {
-        const target = document.getElementById("briefBody");
-        const summary = detail.summary;
-        if (!summary) {
-          target.innerHTML = "<p class='muted'>Summary not available yet.</p>";
-          return;
+      function summaryLayerHtml(summary, layer) {
+        if (!summary) return "<p class='muted'>Not available</p>";
+        if (layer === "1") {
+          return `<ul>${summary.layer1KeyConcepts.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
         }
-
-        if (state.layer === "1") {
-          target.innerHTML = `<h3>Layer 1: Ultra-Concise Key Concepts</h3><ul>${summary.layer1KeyConcepts.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
-          return;
-        }
-        if (state.layer === "2") {
-          target.innerHTML = `<h3>Layer 2: Structured Explanation</h3>${summary.layer2StructuredExplanation
+        if (layer === "2") {
+          return summary.layer2StructuredExplanation
             .map(
               (section) =>
-                `<h4>${escapeHtml(section.heading)}</h4><ul>${section.points.map((point) => `<li>${escapeHtml(point)}</li>`).join("")}</ul>`,
+                `<div style="margin-bottom:12px"><strong>${escapeHtml(section.heading)}</strong><ul>${section.points.map((point) => `<li>${escapeHtml(point)}</li>`).join("")}</ul></div>`,
             )
-            .join("")}`;
-          return;
+            .join("");
         }
+        return `<ul>${summary.layer3DetailedNotes.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+      }
 
-        target.innerHTML = `<h3>Layer 3: Detailed Notes</h3><ul>${summary.layer3DetailedNotes.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+      function renderBrief(detail) {
+        const perPdfContainer = document.getElementById("perPdfPanels");
+        const fallback = document.getElementById("briefBody");
+        const matSummaries = detail.materialSummaries || [];
+
+        if (matSummaries.length > 0) {
+          // Show per-PDF panels and hide the merged brief fallback.
+          fallback.innerHTML = "";
+          perPdfContainer.innerHTML = matSummaries
+            .map(
+              (mat, idx) => `
+              <div class="pdf-panel" id="pdf-panel-${idx}" style="margin-top:16px; border:1px solid var(--border); border-radius:var(--r-lg); overflow:hidden;">
+                <button
+                  class="pdf-panel-header"
+                  aria-expanded="${idx === 0 ? 'true' : 'false'}"
+                  data-panelid="${idx}"
+                  style="width:100%; display:flex; justify-content:space-between; align-items:center; padding:14px 18px; background:var(--surface-2); border:0; cursor:pointer; font-size:14px; font-weight:600; text-align:left;"
+                >
+                  <span>📄 ${escapeHtml(mat.title)}</span>
+                  <span class="pdf-panel-chevron" style="transition:transform .2s; ${idx === 0 ? '' : 'transform:rotate(-90deg)'}">▾</span>
+                </button>
+                <div class="pdf-panel-body" id="pdf-panel-body-${idx}" style="${idx === 0 ? '' : 'display:none;'} padding:16px 18px;">
+                  ${summaryLayerHtml(mat.summary, state.layer)}
+                </div>
+              </div>`,
+            )
+            .join("");
+
+          // Wire accordion toggles.
+          for (const btn of perPdfContainer.querySelectorAll(".pdf-panel-header")) {
+            btn.addEventListener("click", () => {
+              const id = btn.dataset.panelid;
+              const body = document.getElementById(`pdf-panel-body-${id}`);
+              const chevron = btn.querySelector(".pdf-panel-chevron");
+              const isOpen = btn.getAttribute("aria-expanded") === "true";
+              btn.setAttribute("aria-expanded", isOpen ? "false" : "true");
+              body.style.display = isOpen ? "none" : "";
+              chevron.style.transform = isOpen ? "rotate(-90deg)" : "";
+            });
+          }
+        } else {
+          // Fallback: merged brief (old sessions or still summarising).
+          perPdfContainer.innerHTML = "";
+          const summary = detail.summary;
+          if (!summary) {
+            fallback.innerHTML = "<p class='muted'>Summary not available yet.</p>";
+            return;
+          }
+          const layerLabels = { "1": "Layer 1: Ultra-Concise Key Concepts", "2": "Layer 2: Structured Explanation", "3": "Layer 3: Detailed Notes" };
+          fallback.innerHTML = `<h3>${layerLabels[state.layer] || ""}</h3>${summaryLayerHtml(summary, state.layer)}`;
+        }
+      }
+
+      function refreshPerPdfContent() {
+        // Re-render layer content inside already-open PDF panels without rebuilding DOM.
+        const matSummaries = state.detail?.materialSummaries || [];
+        if (matSummaries.length === 0) return;
+        matSummaries.forEach((mat, idx) => {
+          const body = document.getElementById(`pdf-panel-body-${idx}`);
+          if (body) body.innerHTML = summaryLayerHtml(mat.summary, state.layer);
+        });
       }
 
       function renderSources(detail) {
-        const onlyPdf = document.getElementById("sourcesPdfOnly").checked;
+        // All materials (PDF + PPT) are shown by default.
+        // The checkbox hides non-document links (e.g. HTML pages or other link types).
+        const onlyDocs = document.getElementById("sourcesPdfOnly").checked;
         const rows = detail.materials.filter((item) => {
-          if (!onlyPdf) return true;
-          return /\.pdf(\?|$)/i.test(item.url) || /pdf/i.test(item.title);
+          if (!onlyDocs) return true;
+          // Keep PDFs, PPTs, DOCs — everything that was actually downloaded and summarised.
+          return (
+            /\.(pdf|ppt|pptx|doc|docx)(\?|$)/i.test(item.url) ||
+            /\b(pdf|ppt|pptx|doc|docx|slide|lecture|presentation)\b/i.test(item.title) ||
+            item.url.includes("pluginfile.php") // Moodle file download URLs
+          );
         });
         const body = document.getElementById("sourcesBody");
         if (rows.length === 0) {
-          body.innerHTML = "<tr><td colspan='4' class='muted'>No materials available</td></tr>";
+          body.innerHTML = "<tr><td colspan='3' class='muted'>No materials available</td></tr>";
           return;
         }
+        // Determine file type label from URL / title.
+        const fileType = (item) => {
+          const u = item.url.toLowerCase();
+          const t = item.title.toLowerCase();
+          if (/\.pptx?(\?|$)/.test(u) || /\bppt\b|\bslide\b|\bpresentation\b/.test(t)) return "PPT";
+          if (/\.pdf(\?|$)/.test(u) || /\bpdf\b/.test(t)) return "PDF";
+          if (/\.docx?(\?|$)/.test(u)) return "DOC";
+          return "File";
+        };
         body.innerHTML = rows
           .map(
             (item) => `
               <tr>
-                <td>${escapeHtml(item.title)}</td>
-                <td><span style="color:var(--success); font-weight:600;">Done</span></td>
-                <td>${item.url.startsWith("mock://") ? "<span style='color:var(--success)'>Yes</span>" : "<span class='muted'>No</span>"}</td>
-                <td><a class="btn btn-ghost" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">Open</a></td>
+                <td>
+                  <span style="font-size:11px; font-weight:700; color:var(--text-secondary); background:var(--surface-2); border-radius:4px; padding:2px 6px; margin-right:6px;">${fileType(item)}</span>${escapeHtml(item.title)}
+                </td>
+                <td><span style="color:var(--success); font-weight:600;">✓ Done</span></td>
+                <td><a class="btn btn-ghost" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">Open ↗</a></td>
               </tr>
             `,
           )
@@ -442,13 +531,18 @@
       }
 
       function wireLayerTabs() {
-        for (const tab of document.querySelectorAll(".tab")) {
+        for (const tab of document.querySelectorAll("#globalLayerTabs .tab")) {
           tab.addEventListener("click", () => {
             state.layer = tab.dataset.layer;
-            for (const button of document.querySelectorAll(".tab")) {
+            for (const button of document.querySelectorAll("#globalLayerTabs .tab")) {
               button.classList.toggle("active", button.dataset.layer === state.layer);
             }
-            renderBrief(state.detail);
+            const matSummaries = state.detail?.materialSummaries || [];
+            if (matSummaries.length > 0) {
+              refreshPerPdfContent();
+            } else {
+              renderBrief(state.detail);
+            }
           });
         }
       }
@@ -463,10 +557,35 @@
         renderHeader(state.detail);
         renderError(state.detail);
         renderPipeline(state.detail);
-        renderBrief(state.detail);
+
+        // Smart panel rendering — preserve accordion open/closed state during re-runs.
+        // Key: compare the ordered list of resourceIds to detect structural changes.
+        const newSig = (state.detail.materialSummaries || []).map((m) => m.resourceId).join(",");
+        if (!newSig && state.panelSignature !== null) {
+          // Re-run in progress: new summaries not ready yet.  Keep the existing
+          // panels visible so the user can still read the previous results.
+          refreshPerPdfContent(); // no-op when materialSummaries is empty, panels stay intact
+        } else if (newSig && newSig === state.panelSignature) {
+          // Same set of PDFs, run completed with identical structure.
+          // Update panel content in-place — accordion open/closed state is preserved.
+          refreshPerPdfContent();
+        } else {
+          // First load, newly-completed run with different PDFs, or no panels yet.
+          renderBrief(state.detail);
+          state.panelSignature = newSig || null;
+        }
+
         renderSources(state.detail);
         renderResolver(state.detail);
         setSystemStatus(state.detail.run);
+
+        // Auto-poll while the run is in progress; stop when it settles.
+        const isRunning = state.detail.run?.status === "running";
+        if (isRunning) {
+          startPolling();
+        } else {
+          stopPolling();
+        }
       }
 
       async function rerun() {
@@ -515,49 +634,71 @@
       }
 
       function clearOverrides() {
+        // ovSectionId is a hidden input; clear it in case it was set programmatically.
         document.getElementById("ovSectionId").value = "";
         document.getElementById("ovTopicNumber").value = "";
         document.getElementById("ovContains").value = "";
       }
 
-      function copyBrief() {
-        if (!state.detail?.summary) return;
-        const text = [
-          "Layer 1",
-          ...state.detail.summary.layer1KeyConcepts.map((item) => `- ${item}`),
-          "",
-          "Layer 2",
-          ...state.detail.summary.layer2StructuredExplanation.flatMap((item) => [
-            `## ${item.heading}`,
-            ...item.points.map((point) => `- ${point}`),
-          ]),
-          "",
-          "Layer 3",
-          ...state.detail.summary.layer3DetailedNotes.map((item) => `- ${item}`),
-        ].join("\n");
-        navigator.clipboard.writeText(text).catch(() => undefined);
-      }
-
-      function exportBrief() {
-        if (!state.detail?.summary) return;
-        const markdown = [
-          `# ${state.detail.session.courseName}`,
-          `## ${state.detail.session.sessionLabel || "Session"}`,
+      function summaryToMarkdown(title, summary) {
+        if (!summary) return "";
+        return [
+          `## ${title}`,
           "",
           "### Layer 1",
-          ...state.detail.summary.layer1KeyConcepts.map((item) => `- ${item}`),
+          ...summary.layer1KeyConcepts.map((item) => `- ${item}`),
           "",
           "### Layer 2",
-          ...state.detail.summary.layer2StructuredExplanation.flatMap((item) => [
+          ...summary.layer2StructuredExplanation.flatMap((item) => [
             `#### ${item.heading}`,
             ...item.points.map((point) => `- ${point}`),
           ]),
           "",
           "### Layer 3",
-          ...state.detail.summary.layer3DetailedNotes.map((item) => `- ${item}`),
+          ...summary.layer3DetailedNotes.map((item) => `- ${item}`),
         ].join("\n");
+      }
 
-        const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
+      function copyBrief() {
+        const matSummaries = state.detail?.materialSummaries || [];
+        if (matSummaries.length > 0) {
+          const text = matSummaries.map((m) => summaryToMarkdown(m.title, m.summary)).join("\n\n---\n\n");
+          navigator.clipboard.writeText(text).catch(() => undefined);
+          return;
+        }
+        if (!state.detail?.summary) return;
+        const s = state.detail.summary;
+        const text = [
+          "Layer 1",
+          ...s.layer1KeyConcepts.map((item) => `- ${item}`),
+          "",
+          "Layer 2",
+          ...s.layer2StructuredExplanation.flatMap((item) => [`## ${item.heading}`, ...item.points.map((point) => `- ${point}`)]),
+          "",
+          "Layer 3",
+          ...s.layer3DetailedNotes.map((item) => `- ${item}`),
+        ].join("\n");
+        navigator.clipboard.writeText(text).catch(() => undefined);
+      }
+
+      function exportBrief() {
+        const matSummaries = state.detail?.materialSummaries || [];
+        const lines = [
+          `# ${state.detail.session.courseName}`,
+          `## ${state.detail.session.sessionLabel || "Session"} — ${state.detail.session.date}`,
+          "",
+        ];
+        if (matSummaries.length > 0) {
+          for (const mat of matSummaries) {
+            lines.push(summaryToMarkdown(mat.title, mat.summary));
+            lines.push("");
+          }
+        } else if (state.detail?.summary) {
+          lines.push(summaryToMarkdown("Summary", state.detail.summary));
+        } else {
+          return;
+        }
+        const blob = new Blob([lines.join("\n")], { type: "text/markdown;charset=utf-8" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;

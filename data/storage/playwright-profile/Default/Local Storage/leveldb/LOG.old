@@ -1,3 +1,5 @@
-2026/03/03-01:55:57.636 1dc4376 Reusing MANIFEST /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Local Storage/leveldb/MANIFEST-000001
-2026/03/03-01:55:57.639 1dc4376 Recovering log #4
-2026/03/03-01:55:57.639 1dc4376 Reusing old log /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Local Storage/leveldb/000004.log 
+2026/03/03-12:48:31.381 1ddadeb Reusing MANIFEST /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Local Storage/leveldb/MANIFEST-000001
+2026/03/03-12:48:31.385 1ddadeb Recovering log #7
+2026/03/03-12:48:31.386 1ddadeb Level-0 table #9: started
+2026/03/03-12:48:31.392 1ddadeb Level-0 table #9: 31755 bytes OK
+2026/03/03-12:48:31.393 1ddadeb Delete type=0 #7

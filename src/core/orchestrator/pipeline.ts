@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import path from "node:path";
-import { createSummaryProvider } from "../../adapters/llm/provider.js";
 import { config } from "../../config.js";
+import { summarizeMultiMaterial } from "../ai/summarizer.js";
 import { processPdfLinks } from "../pdf/pipeline.js";
 import { resolveSessionMaterials } from "../resolver/resolver.js";
 import {
@@ -10,6 +10,7 @@ import {
   failRun,
   replaceMaterials,
   saveAnchor,
+  saveMaterialSummaries,
   saveResolverDebug,
   saveSummary,
   updateRunStage,
@@ -18,8 +19,6 @@ import {
 } from "../../storage/sqlite.js";
 import type { Session, SessionOverride, SummaryProviderMode } from "../../types/domain.js";
 import { writeJsonFile } from "../../utils/fs.js";
-
-const summaryProvider = createSummaryProvider();
 
 export async function executeRun(
   session: Session,
@@ -60,7 +59,15 @@ export async function executeRun(
     }
 
     updateRunStage(runId, "summarizing", "Generating structured summary");
-    const summarized = await summaryProvider.summarize(processed.chunks, session.courseName, options?.provider);
+
+    // Single LLM call: Gemini returns one summary block per PDF in one JSON response.
+    // This replaces the old N+1 pattern (one call per PDF + one merged call).
+    const summarized = await summarizeMultiMaterial({
+      parsedPdfs: processed.parsedPdfs,
+      chunks: processed.chunks,
+      courseName: session.courseName,
+      provider: options?.provider,
+    });
 
     updateRunStage(runId, "writing", "Persisting materials, summary and debug traces");
     updateRunTraces(runId, summarized.providerTrace, summarized.schemaValidationTrace);
@@ -74,13 +81,23 @@ export async function executeRun(
       materials: processed.materialRecords,
     });
 
+    // Save the composed merged summary (used by Latest Brief preview + export fallback).
     saveSummary({
       runId,
       sessionId: session.sessionId,
       courseKey: session.courseKey,
       resolverResult: resolved.result,
-      summary: summarized.summary,
+      summary: summarized.mergedSummary,
     });
+
+    // Save per-material summaries (one row per PDF/PPT — drives the per-PDF UI panels).
+    if (summarized.materialSummaries.length > 0) {
+      saveMaterialSummaries({
+        runId,
+        sessionId: session.sessionId,
+        items: summarized.materialSummaries,
+      });
+    }
 
     await writeJsonFile(path.join(config.runDebugDir, `${runId}.json`), {
       runId,

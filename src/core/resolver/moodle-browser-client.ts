@@ -109,42 +109,69 @@ async function maybeActivateTopicTab(
 }
 
 async function expandAllVisibleSections(page: import("playwright").Page, navigationSteps: string[]): Promise<void> {
-  const selectors = [
-    'button[aria-expanded="false"]',
+  // Step 1: Click the global "Expand all" button first — this is the most reliable
+  // way to open all collapsed accordion sections in Moodle's Boost theme.
+  const expandAllLocator = page.locator(
+    'a[data-action="expandall"], .collapseexpand a.expandall, a:has-text("Expand all"), button:has-text("Expand all")',
+  );
+  const expandAllCount = await expandAllLocator.count().catch(() => 0);
+  if (expandAllCount > 0) {
+    await expandAllLocator.first().click({ timeout: 3_000 }).catch(() => undefined);
+    // Wait for the sections to animate open.
+    await page.waitForTimeout(800);
+    navigationSteps.push("Clicked global Expand all button");
+  }
+
+  // Step 2: Fall back to clicking any remaining collapsed individual controls.
+  // IMPORTANT: Keep selectors scoped to Moodle course-content containers so we
+  // don't accidentally click navigation dropdowns, modal triggers, or other
+  // collapsed UI widgets that happen to use aria-expanded="false".
+  const individualSelectors = [
+    '[data-action="expandcontent"]',       // Moodle 4.x section toggle
+    '[data-action="sectionshow"]',         // Moodle 4.x hidden-section show
+    // Scope the generic ARIA button selector to known Moodle course regions to
+    // avoid clicking unrelated collapsed UI (menus, modals, nav dropdowns, etc.)
+    '#region-main button[aria-expanded="false"]',
+    '.course-content button[aria-expanded="false"]',
+    '.course-section button[aria-expanded="false"]',
     ".accordion-button.collapsed",
-    ".collapseexpand .expandall",
-    "[data-action=\"expand\"]",
-    "a[href=\"#\"][role=\"button\"]",
+    '[data-action="expand"]',
+    'a[href="#"][role="button"]',
   ];
   let clicks = 0;
 
-  for (const selector of selectors) {
+  for (const selector of individualSelectors) {
     const locator = page.locator(selector);
     const count = await locator.count().catch(() => 0);
     for (let i = 0; i < count; i += 1) {
       const handle = locator.nth(i);
       const visible = await handle.isVisible().catch(() => false);
-      if (!visible) {
-        continue;
-      }
+      if (!visible) continue;
       await handle.click({ timeout: 2_000 }).catch(() => undefined);
       clicks += 1;
     }
   }
 
   if (clicks > 0) {
-    navigationSteps.push(`Expanded ${clicks} collapsible controls`);
+    navigationSteps.push(`Expanded ${clicks} individual collapsible controls`);
   }
 }
 
 async function extractRawSections(page: import("playwright").Page): Promise<RawMoodleSection[]> {
   return page.evaluate(() => {
-    function text(node: Element | null | undefined): string {
-      if (!node) {
-        return "";
-      }
-      return (node.textContent || "").replace(/\s+/g, " ").trim();
-    }
+    // tsx compiles with keepNames:true, which transforms every
+    //   const fn = (x) => { ... }
+    // into
+    //   const fn = __name((x) => { ... }, "fn")
+    // __name is a module-level esbuild helper that does not exist in
+    // browser scope.  Using an object-method shorthand avoids the injection
+    // because the JS engine sets .name from the property key automatically.
+    const u = {
+      text(node: Element | null | undefined): string {
+        if (!node) return "";
+        return (node.textContent || "").replace(/\s+/g, " ").trim();
+      },
+    };
 
     const sectionSelectors = [
       ".course-content .section",
@@ -183,10 +210,17 @@ async function extractRawSections(page: import("playwright").Page): Promise<RawM
         sectionNode.getAttribute("data-sectionid") ||
         `section-${sectionIndex + 1}`;
 
+      // Try progressively more specific selectors; Moodle Boost (ESADE) uses
+      // .sectionname inside h3, or .course-section-header.  Fall back to
+      // generic headings so we still work on other Moodle themes.
       const titleNode =
-        sectionNode.querySelector("h2, h3, h4, .sectionname, .instancename, .card-title, .nav-link.active") ||
-        sectionNode.querySelector("summary, .accordion-header, .section-title");
-      const sectionTitle = text(titleNode) || `Section ${sectionIndex + 1}`;
+        sectionNode.querySelector(".sectionname") ||
+        sectionNode.querySelector(".course-section-header h3, .course-section-header h2") ||
+        sectionNode.querySelector(".section-title, .section_title") ||
+        sectionNode.querySelector("h2, h3, h4") ||
+        sectionNode.querySelector(".instancename, .card-title, .nav-link.active") ||
+        sectionNode.querySelector("summary, .accordion-header");
+      const sectionTitle = u.text(titleNode) || `Section ${sectionIndex + 1}`;
 
       const resourceNodes = Array.from(
         sectionNode.querySelectorAll(
@@ -205,17 +239,17 @@ async function extractRawSections(page: import("playwright").Page): Promise<RawM
         }
 
         const parent = anchor.closest("li, .activity, .activity-item, .modtype_resource, .card, tr, .row") || anchor.parentElement;
-        const lineText = text(parent);
+        const lineText = u.text(parent);
         const titleText =
-          text(anchor.querySelector(".instancename")) ||
-          text(anchor.querySelector(".resourcelinkdetails")) ||
-          text(anchor) ||
+          u.text(anchor.querySelector(".instancename")) ||
+          u.text(anchor.querySelector(".resourcelinkdetails")) ||
+          u.text(anchor) ||
           lineText;
         const icon = anchor.querySelector("img, i, .icon, .fp-icon");
         const iconHint = icon ? `${icon.getAttribute("alt") || ""} ${icon.getAttribute("class") || ""} ${icon.getAttribute("src") || ""}` : "";
         const typeHint =
-          text(parent?.querySelector(".activitytype, .type, .text-uppercase, .resource-type")) ||
-          text(anchor.parentElement?.querySelector(".activitytype, .type"));
+          u.text(parent?.querySelector(".activitytype, .type, .text-uppercase, .resource-type")) ||
+          u.text(anchor.parentElement?.querySelector(".activitytype, .type"));
         const dedupe = `${href}|${titleText}`;
         if (seen.has(dedupe)) {
           continue;

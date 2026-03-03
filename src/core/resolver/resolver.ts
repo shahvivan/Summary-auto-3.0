@@ -64,10 +64,13 @@ function getEligibleMaterialLinks(section: CourseSection): MaterialLink[] {
 }
 
 function chooseLatestMaterials(materials: MaterialLink[]): MaterialLink[] {
+  // Download everything up to the limit and let the AI decide what's relevant.
   if (materials.length <= config.resolverRecentLimit) {
     return materials;
   }
 
+  // If there are more than the limit, prefer the most recently uploaded batch
+  // so the AI always sees the newest content.
   const withDates = materials.filter((item) => item.uploadedAt);
   if (withDates.length > 0) {
     const sorted = [...withDates].sort((a, b) => {
@@ -82,6 +85,7 @@ function chooseLatestMaterials(materials: MaterialLink[]): MaterialLink[] {
     }
   }
 
+  // Fallback: take by upload order.
   return [...materials]
     .sort((a, b) => {
       const aOrder = a.orderIndex ?? Number.MAX_SAFE_INTEGER;
@@ -100,6 +104,21 @@ function scoreSections(params: {
   const sessionTokens = tokenize(`${params.session.eventTitle} ${params.session.sessionLabel ?? ""}`);
   const introPenaltyPattern = /\b(introduction|welcome|syllabus|attendance|announcement|participants|forum)\b/i;
   const maxIndex = Math.max(1, params.sections.length - 1);
+
+  // Pre-compute the most recently uploaded timestamp across ALL sections so we
+  // can give a boost to the section containing the freshest material.  This is
+  // the primary signal when the ICS event has no explicit topic number (e.g.
+  // Macroeconomics, Business Law II where the professor just uploaded this
+  // week's slides most recently).
+  let globalLatestTs = 0;
+  for (const section of params.sections) {
+    for (const link of getEligibleMaterialLinks(section)) {
+      if (link.uploadedAt) {
+        const ts = new Date(link.uploadedAt).valueOf();
+        if (ts > globalLatestTs) globalLatestTs = ts;
+      }
+    }
+  }
 
   return params.sections.map((section, sectionIndex) => {
     const reasons: string[] = [];
@@ -155,6 +174,23 @@ function scoreSections(params: {
     score += Math.min(eligibleCount, 5) * 0.9;
     if (eligibleCount > 0) {
       reasons.push(`resourceDensity:${eligibleCount}`);
+    }
+
+    // Strong boost for the section that contains the globally most-recently
+    // uploaded material.  Professors upload the current week's slides just
+    // before class — so the freshest file is almost always the right one.
+    // Only apply when there is no explicit topic-number match (avoids
+    // overriding a correct topicExact hit).
+    if (globalLatestTs > 0 && params.inferredTopicNumber === null) {
+      const sectionLatestTs = eligible.reduce((max, link) => {
+        if (!link.uploadedAt) return max;
+        const ts = new Date(link.uploadedAt).valueOf();
+        return ts > max ? ts : max;
+      }, 0);
+      if (sectionLatestTs === globalLatestTs) {
+        score += 4;
+        reasons.push("freshestUpload");
+      }
     }
 
     return { section, score, reasons, eligibleCount };
