@@ -356,6 +356,15 @@ export async function resolveSessionMaterials(
   override?: SessionOverride,
   options?: ResolveSessionMaterialsOptions,
 ): Promise<{ courseId: string; courseName: string; result: ResolverResult; cookieHeader?: string; preDownloadedFiles: Record<string, Buffer> }> {
+  // IMPORTANT: Seed the session tracker BEFORE reading it, so that courses with
+  // a startingSession in course-map.json get their initial topic number on the
+  // very first run (seedSessionTracker uses INSERT ... ON CONFLICT DO NOTHING,
+  // so it only takes effect when there is no existing row).
+  const mapped = await findCourseMapEntry(session.courseName);
+  if (mapped?.startingSession !== undefined) {
+    seedSessionTracker(session.courseKey, mapped.startingSession);
+  }
+
   const anchor = getAnchor(session.courseKey);
   // Try to extract a topic number from the event title first; fall back to the
   // session tracker (which is seeded from course-map.json and auto-incremented
@@ -442,14 +451,20 @@ export async function resolveSessionMaterials(
   }
 
   // Apply slides-only filter: for courses like Business Law II and Descriptive Statistics,
-  // only select materials whose title ends with "slides" (case-insensitive).
+  // only select materials whose title contains the word "slides" (case-insensitive, whole word).
+  //
+  // NOTE: We use a whole-word regex rather than .endsWith() because Moodle's Boost theme
+  // appends the file type to the resource title via a visually-hidden <span class="accesshide">
+  // inside .instancename.  The textContent of that element becomes e.g.
+  // "Topic 4. Support slides PDF" — so .endsWith("slides") would fail even when the correct
+  // file is present.  A word-boundary check handles both "…slides" and "…slides PDF".
+  //
   // If the section exists but has no "slides" file yet, throw a clear user-facing error
   // so the UI can show "Slides have not been posted yet" instead of a confusing failure.
+  const SLIDES_WORD = /\bslides\b/i;
   let slidesFilteredLinks = effectiveLinks;
   if (loaded.slidesOnlyFilter) {
-    const slidesLinks = effectiveLinks.filter((link) =>
-      link.title.trim().toLowerCase().endsWith("slides"),
-    );
+    const slidesLinks = effectiveLinks.filter((link) => SLIDES_WORD.test(link.title));
     if (slidesLinks.length === 0) {
       throw new Error(
         `Slides have not been posted yet for this session (section: "${selectedSection.title}")`,

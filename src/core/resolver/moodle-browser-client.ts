@@ -92,28 +92,45 @@ async function maybeActivateTopicTab(
     return;
   }
 
-  const clicked = await page
+  const tabPattern = new RegExp(`\\b(topic|session|week|unit|part)\\s*${inferredTopicNumber}\\b`, "i");
+  const tabLocator = page
     .locator("a,button")
-    .filter({
-      hasText: new RegExp(`\\b(topic|session|week|unit|part)\\s*${inferredTopicNumber}\\b`, "i"),
-    })
-    .first()
-    .isVisible()
-    .catch(() => false);
-  if (!clicked) {
+    .filter({ hasText: tabPattern })
+    .first();
+
+  const isVisible = await tabLocator.isVisible().catch(() => false);
+  if (!isVisible) {
     return;
   }
 
-  await page
-    .locator("a,button")
-    .filter({
-      hasText: new RegExp(`\\b(topic|session|week|unit|part)\\s*${inferredTopicNumber}\\b`, "i"),
+  // Determine whether the tab is a navigation link (e.g. Moodle topic tabs with
+  // href="?section=N") or a JS-toggled button so we can wait appropriately.
+  const tabHref = await tabLocator
+    .evaluate((el) => {
+      const href = (el as HTMLAnchorElement).href || el.getAttribute("href") || "";
+      return href;
     })
-    .first()
-    .click({ timeout: 5_000 })
-    .catch(() => undefined);
-  await page.waitForTimeout(500);
-  navigationSteps.push(`Activated tab/topic with number ${inferredTopicNumber}`);
+    .catch(() => "");
+
+  // A real navigation link: href has content and is not just "#"
+  const isNavigationLink = Boolean(tabHref) && !tabHref.endsWith("#") && !tabHref.match(/^#\w/);
+
+  if (isNavigationLink) {
+    // Click and wait for the new page to fully load — Moodle tabs navigate to
+    // e.g. course/view.php?id=44077&section=6 which loads only that section's content.
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: 20_000 }).catch(() => undefined),
+      tabLocator.click({ timeout: 5_000 }).catch(() => undefined),
+    ]);
+    // Wait a bit more for any lazy-loaded assets.
+    await page.waitForTimeout(500);
+    navigationSteps.push(`Navigated to topic tab ${inferredTopicNumber} (URL: ${page.url().slice(0, 120)})`);
+  } else {
+    // JS-toggled tab (e.g. accordion) — just click and wait briefly for the DOM to update.
+    await tabLocator.click({ timeout: 5_000 }).catch(() => undefined);
+    await page.waitForTimeout(1_000);
+    navigationSteps.push(`Activated JS tab/topic with number ${inferredTopicNumber}`);
+  }
 }
 
 async function expandAllVisibleSections(page: import("playwright").Page, navigationSteps: string[]): Promise<void> {

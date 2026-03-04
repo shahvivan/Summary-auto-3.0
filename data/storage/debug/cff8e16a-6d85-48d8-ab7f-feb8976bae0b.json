@@ -1,0 +1,94 @@
+{
+  "runId": "cff8e16a-6d85-48d8-ab7f-feb8976bae0b",
+  "sessionId": "2026-03-04-descriptive-statistics-probability-da823a",
+  "courseKey": "descriptive-statistics-probability",
+  "resolver": {
+    "selectedSectionId": "section-2",
+    "selectedSectionTitle": "Statistics Everywhere",
+    "pdfLinks": [
+      {
+        "id": "resource-2-1",
+        "title": "Topic 4. Support slides File",
+        "url": "https://ecampus.esade.edu/mod/resource/view.php?id=5129572",
+        "type": "pdf",
+        "orderIndex": 0
+      }
+    ],
+    "debug": {
+      "allSections": [
+        {
+          "sectionId": "section-2",
+          "sectionTitle": "Statistics Everywhere",
+          "score": 5.25,
+          "reasons": [
+            "token:statistics",
+            "orderBoost:2.20",
+            "resourceDensity:2"
+          ],
+          "pdfCount": 2
+        },
+        {
+          "sectionId": "section-8",
+          "sectionTitle": "Statistics Everywhere",
+          "score": 3.05,
+          "reasons": [
+            "token:statistics",
+            "orderBoost:0.00",
+            "resourceDensity:2"
+          ],
+          "pdfCount": 2
+        }
+      ],
+      "overrideApplied": "automatic",
+      "confidenceScore": 1,
+      "selectedReason": "token:statistics, orderBoost:2.20, resourceDensity:2",
+      "navigationSteps": [
+        "Opened Moodle base URL: https://ecampus.esade.edu/my/",
+        "Opened course URL: https://ecampus.esade.edu/course/view.php?id=44077",
+        "Navigated to topic tab 4 (URL: https://ecampus.esade.edu/course/view.php?id=44077&section=8#tabs-tree-start)",
+        "Clicked global Expand all button",
+        "Expanded 4 individual collapsible controls",
+        "Direct fetch returned HTML for \"Topic 4. Support slides File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Topic 4. Support slides File\": https://ecampus.esade.edu/pluginfile.php/187439266/mod_resource/content/23/Topic%204%20Lecture.pdf",
+        "Downloaded via view page: \"Topic 4. Support slides File\" (1487 KB)",
+        "Direct fetch returned HTML for \"Case 4 File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Case 4 File\": https://ecampus.esade.edu/pluginfile.php/187439278/mod_resource/content/13/Topic%204%20Stats%20every",
+        "Downloaded via view page: \"Case 4 File\" (369 KB)",
+        "Direct fetch returned HTML for \"Topic 4. Support slides File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Topic 4. Support slides File\": https://ecampus.esade.edu/pluginfile.php/187439266/mod_resource/content/23/Topic%204%20Lecture.pdf",
+        "Downloaded via view page: \"Topic 4. Support slides File\" (1487 KB)",
+        "Direct fetch returned HTML for \"Case 4 File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Case 4 File\": https://ecampus.esade.edu/pluginfile.php/187439278/mod_resource/content/13/Topic%204%20Stats%20every",
+        "Downloaded via view page: \"Case 4 File\" (369 KB)"
+      ],
+      "domStats": {
+        "sectionCount": 2,
+        "resourceCount": 4,
+        "pdfResources": 4,
+        "pptResources": 0
+      },
+      "pdfFilterStats": {
+        "inputResources": 2,
+        "pdfResources": 1,
+        "pptResources": 0,
+        "selectedResources": 1
+      }
+    }
+  },
+  "providerTrace": {
+    "requestedProvider": "auto",
+    "finalProvider": "gemini",
+    "attempts": [
+      {
+        "provider": "gemini",
+        "ok": true
+      }
+    ]
+  },
+  "schemaValidationTrace": {
+    "attempts": 1,
+    "repairedAttempts": 0,
+    "providerPayloadErrors": []
+  },
+  "writtenAt": "2026-03-04T10:04:04.597Z"
+}
