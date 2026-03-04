@@ -20,7 +20,8 @@
       "Business Law II: Taxation",
       "Business Law II Taxation"
     ],
-    "url": "https://ecampus.esade.edu/course/view.php?id=42694"
+    "url": "https://ecampus.esade.edu/course/view.php?id=42694",
+    "slidesOnlyFilter": true
   },
   {
     "courseName": "Macroeconomics in a Global Context Sec: F",
@@ -50,6 +51,7 @@
       "Descriptive Statistics and Probability",
       "Statistics and Probability"
     ],
-    "url": "https://ecampus.esade.edu/course/view.php?id=44077"
+    "url": "https://ecampus.esade.edu/course/view.php?id=44077",
+    "slidesOnlyFilter": true
   }
 ]

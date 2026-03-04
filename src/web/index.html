@@ -182,7 +182,7 @@
       ];
 
       const state = {
-        today: new Date().toISOString().slice(0, 10),
+        today: new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date()),
         sessions: [],
         runsBySession: new Map(),
         activeOverrideSession: null,

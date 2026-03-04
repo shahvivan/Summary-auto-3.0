@@ -9,6 +9,13 @@ const entrySchema = z.object({
   url: z.string().url(),
   /** Only include PDFs/PPTs whose subsectionLabel contains this string (case-insensitive). */
   subsectionFilter: z.string().optional(),
+  /**
+   * When true, after section selection keep only materials whose title ends
+   * with "slides" (case-insensitive).  If the section exists but has NO matching
+   * file, the resolver throws "Slides have not been posted yet for this session"
+   * instead of falling back to all materials.
+   */
+  slidesOnlyFilter: z.boolean().optional(),
   /** The current session number for this course (auto-incremented after each run). */
   startingSession: z.number().int().optional(),
 });

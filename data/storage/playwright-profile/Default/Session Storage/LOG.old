@@ -1,22 +1,30 @@
-2026/03/04-00:46:21.162 1e3a506 Reusing MANIFEST /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/MANIFEST-000001
-2026/03/04-00:46:21.164 1e3a506 Recovering log #50
-2026/03/04-00:46:21.166 1e3a506 Level-0 table #53: started
-2026/03/04-00:46:21.169 1e3a506 Level-0 table #53: 22432 bytes OK
-2026/03/04-00:46:21.169 1e3a506 Recovering log #52
-2026/03/04-00:46:21.170 1e3a506 Reusing old log /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/000052.log 
-2026/03/04-00:46:21.177 1e3a506 Delete type=0 #50
-2026/03/04-00:46:29.800 1e3a509 Level-0 table #55: started
-2026/03/04-00:46:29.809 1e3a509 Level-0 table #55: 42511 bytes OK
-2026/03/04-00:46:29.816 1e3a509 Delete type=0 #52
-2026/03/04-00:46:31.547 1e3a509 Level-0 table #57: started
-2026/03/04-00:46:31.551 1e3a509 Level-0 table #57: 42206 bytes OK
-2026/03/04-00:46:31.561 1e3a509 Delete type=0 #54
-2026/03/04-00:46:31.562 1e3a509 Compacting 4@0 + 1@1 files
-2026/03/04-00:46:31.576 1e3a509 Generated table #58@0: 119 keys, 526474 bytes
-2026/03/04-00:46:31.576 1e3a509 Compacted 4@0 + 1@1 files => 526474 bytes
-2026/03/04-00:46:31.577 1e3a509 compacted to: files[ 0 1 0 0 0 0 0 ]
-2026/03/04-00:46:31.578 1e3a509 Delete type=2 #49
-2026/03/04-00:46:31.578 1e3a509 Delete type=2 #57
-2026/03/04-00:46:31.578 1e3a509 Delete type=2 #55
-2026/03/04-00:46:31.578 1e3a509 Delete type=2 #51
-2026/03/04-00:46:31.578 1e3a509 Delete type=2 #53
+2026/03/04-01:09:50.731 1e400cf Reusing MANIFEST /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/MANIFEST-000001
+2026/03/04-01:09:50.733 1e400cf Recovering log #62
+2026/03/04-01:09:50.735 1e400cf Level-0 table #65: started
+2026/03/04-01:09:50.756 1e400cf Level-0 table #65: 42206 bytes OK
+2026/03/04-01:09:50.758 1e400cf Recovering log #64
+2026/03/04-01:09:50.759 1e400cf Reusing old log /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/000064.log 
+2026/03/04-01:09:50.765 1e400cf Delete type=0 #62
+2026/03/04-01:10:00.328 1e400d2 Level-0 table #67: started
+2026/03/04-01:10:00.336 1e400d2 Level-0 table #67: 42496 bytes OK
+2026/03/04-01:10:00.340 1e400d2 Delete type=0 #64
+2026/03/04-01:10:00.340 1e400cf Compacting 4@0 + 1@1 files
+2026/03/04-01:10:00.355 1e400cf Generated table #68@0: 130 keys, 568410 bytes
+2026/03/04-01:10:00.355 1e400cf Compacted 4@0 + 1@1 files => 568410 bytes
+2026/03/04-01:10:00.356 1e400cf compacted to: files[ 0 1 0 0 0 0 0 ]
+2026/03/04-01:10:00.356 1e400cf Delete type=2 #63
+2026/03/04-01:10:00.356 1e400cf Delete type=2 #61
+2026/03/04-01:10:00.356 1e400cf Delete type=2 #58
+2026/03/04-01:10:00.356 1e400cf Delete type=2 #65
+2026/03/04-01:10:00.356 1e400cf Delete type=2 #67
+2026/03/04-01:10:01.995 1e400d2 Level-0 table #70: started
+2026/03/04-01:10:02.004 1e400d2 Level-0 table #70: 42235 bytes OK
+2026/03/04-01:10:02.007 1e400d2 Delete type=0 #66
+2026/03/04-01:10:05.702 1e400d2 Level-0 table #72: started
+2026/03/04-01:10:05.709 1e400d2 Level-0 table #72: 42235 bytes OK
+2026/03/04-01:10:05.712 1e400d2 Delete type=0 #69
+2026/03/04-01:10:07.428 1e400d2 Level-0 table #74: started
+2026/03/04-01:10:07.436 1e400d2 Level-0 table #74: 42235 bytes OK
+2026/03/04-01:10:07.439 1e400d2 Delete type=0 #71
+2026/03/04-01:10:09.240 1e401df Level-0 table #76: started
+2026/03/04-01:10:09.245 1e401df Level-0 table #76: 42235 bytes OK

@@ -272,6 +272,7 @@ async function loadCourseForSession(
   htmlSnapshot?: string;
   cookieHeader?: string;
   subsectionFilter?: string;
+  slidesOnlyFilter?: boolean;
   preDownloadedFiles: Record<string, Buffer>;
 }> {
   const mapped = await findCourseMapEntry(session.courseName);
@@ -301,6 +302,7 @@ async function loadCourseForSession(
       htmlSnapshot: live.htmlSnapshot,
       cookieHeader: live.cookieHeader,
       subsectionFilter: mapped?.subsectionFilter,
+      slidesOnlyFilter: mapped?.slidesOnlyFilter,
       preDownloadedFiles: live.preDownloadedFiles,
     };
   }
@@ -344,6 +346,7 @@ async function loadCourseForSession(
     htmlSnapshot: undefined,
     cookieHeader: undefined,
     subsectionFilter: mapped?.subsectionFilter,
+    slidesOnlyFilter: mapped?.slidesOnlyFilter,
     preDownloadedFiles: {},
   };
 }
@@ -438,7 +441,27 @@ export async function resolveSessionMaterials(
     );
   }
 
-  const chosenLinks = chooseLatestMaterials(effectiveLinks);
+  // Apply slides-only filter: for courses like Business Law II and Descriptive Statistics,
+  // only select materials whose title ends with "slides" (case-insensitive).
+  // If the section exists but has no "slides" file yet, throw a clear user-facing error
+  // so the UI can show "Slides have not been posted yet" instead of a confusing failure.
+  let slidesFilteredLinks = effectiveLinks;
+  if (loaded.slidesOnlyFilter) {
+    const slidesLinks = effectiveLinks.filter((link) =>
+      link.title.trim().toLowerCase().endsWith("slides"),
+    );
+    if (slidesLinks.length === 0) {
+      throw new Error(
+        `Slides have not been posted yet for this session (section: "${selectedSection.title}")`,
+      );
+    }
+    slidesFilteredLinks = slidesLinks;
+    console.log(
+      `[resolver] slidesOnlyFilter: kept ${slidesLinks.length}/${effectiveLinks.length} material(s) in section "${selectedSection.title}"`,
+    );
+  }
+
+  const chosenLinks = chooseLatestMaterials(slidesFilteredLinks);
 
   const topScore = scored[0]?.score ?? 1;
   const selectedScore = scored.find((entry) => entry.section.id === selectedSection?.id)?.score ?? topScore;
@@ -468,8 +491,8 @@ export async function resolveSessionMaterials(
         domStats: loaded.domStats,
         pdfFilterStats: {
           inputResources: selectedSection.resources.length,
-          pdfResources: effectiveLinks.filter((item) => item.type === "pdf").length,
-          pptResources: effectiveLinks.filter((item) => item.type === "ppt").length,
+          pdfResources: slidesFilteredLinks.filter((item) => item.type === "pdf").length,
+          pptResources: slidesFilteredLinks.filter((item) => item.type === "ppt").length,
           selectedResources: chosenLinks.length,
         },
         htmlSnapshot: loaded.htmlSnapshot,

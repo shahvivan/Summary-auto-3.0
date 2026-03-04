@@ -60,7 +60,9 @@ const overrideSchema = z.object({
 });
 
 function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
+  // Use the configured app timezone (Europe/Madrid) so "today" matches the
+  // user's local calendar date, not the UTC date on the server.
+  return new Intl.DateTimeFormat("sv-SE", { timeZone: config.timezone }).format(new Date());
 }
 
 function toError(message: string, errorCode = "internal_error"): { ok: false; errorCode: string; message: string } {
