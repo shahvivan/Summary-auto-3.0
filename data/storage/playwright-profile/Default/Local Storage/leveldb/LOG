@@ -1,15 +1,3 @@
-2026/03/06-15:15:01.725 1ff3965 Reusing MANIFEST /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Local Storage/leveldb/MANIFEST-000001
-2026/03/06-15:15:01.728 1ff3965 Recovering log #23
-2026/03/06-15:15:01.730 1ff3965 Reusing old log /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Local Storage/leveldb/000023.log 
-2026/03/06-15:15:27.481 1ff396c Level-0 table #26: started
-2026/03/06-15:15:27.483 1ff396c Level-0 table #26: 25454 bytes OK
-2026/03/06-15:15:27.485 1ff396c Delete type=0 #23
-2026/03/06-15:15:27.485 1ff396c Compacting 4@0 + 1@1 files
-2026/03/06-15:15:27.489 1ff396c Generated table #27@0: 72 keys, 18937 bytes
-2026/03/06-15:15:27.489 1ff396c Compacted 4@0 + 1@1 files => 18937 bytes
-2026/03/06-15:15:27.490 1ff396c compacted to: files[ 0 1 0 0 0 0 0 ]
-2026/03/06-15:15:27.490 1ff396c Delete type=2 #14
-2026/03/06-15:15:27.490 1ff396c Delete type=2 #17
-2026/03/06-15:15:27.490 1ff396c Delete type=2 #20
-2026/03/06-15:15:27.490 1ff396c Delete type=2 #22
-2026/03/06-15:15:27.490 1ff396c Delete type=2 #26
+2026/03/06-16:12:06.469 1fffa6d Reusing MANIFEST /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Local Storage/leveldb/MANIFEST-000001
+2026/03/06-16:12:06.472 1fffa6d Recovering log #25
+2026/03/06-16:12:06.473 1fffa6d Reusing old log /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Local Storage/leveldb/000025.log 
