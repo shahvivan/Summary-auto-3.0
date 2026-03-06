@@ -1,0 +1,89 @@
+{
+  "runId": "2df34cd4-b119-4633-b932-2247549186b5",
+  "sessionId": "2026-03-05-accounting-i-bba-dbai-gbl-ae0527dc",
+  "courseKey": "accounting-i-bba-dbai-gbl",
+  "resolver": {
+    "selectedSectionId": "section-2",
+    "selectedSectionTitle": "Attendance",
+    "pdfLinks": [
+      {
+        "id": "resource-2-2",
+        "title": "Syllabus 25/26 File",
+        "url": "https://ecampus.esade.edu/mod/resource/view.php?id=5149690",
+        "type": "pdf",
+        "orderIndex": 1
+      }
+    ],
+    "debug": {
+      "allSections": [
+        {
+          "sectionId": "section-2",
+          "sectionTitle": "Attendance",
+          "score": 2.35,
+          "reasons": [
+            "token:accounting",
+            "introPenalty",
+            "orderBoost:2.20",
+            "resourceDensity:1"
+          ],
+          "pdfCount": 1
+        },
+        {
+          "sectionId": "section-1",
+          "sectionTitle": "Welcome to the Accounting I Website!",
+          "score": 0.15,
+          "reasons": [
+            "token:accounting",
+            "introPenalty",
+            "orderBoost:0.00",
+            "resourceDensity:1"
+          ],
+          "pdfCount": 1
+        }
+      ],
+      "overrideApplied": "automatic",
+      "confidenceScore": 1,
+      "selectedReason": "token:accounting, introPenalty, orderBoost:2.20, resourceDensity:1",
+      "navigationSteps": [
+        "Opened Moodle base URL: https://ecampus.esade.edu/my/",
+        "Opened course URL: https://ecampus.esade.edu/course/view.php?id=44311",
+        "Clicked global Expand all button",
+        "Expanded 4 individual collapsible controls",
+        "Direct fetch returned HTML for \"Syllabus 25/26 File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Syllabus 25/26 File\": https://ecampus.esade.edu/pluginfile.php/187461973/mod_resource/content/18/Syllabus2025_26.pdf",
+        "Downloaded via view page: \"Syllabus 25/26 File\" (292 KB)",
+        "Direct fetch returned HTML for \"Syllabus 25/26 File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Syllabus 25/26 File\": https://ecampus.esade.edu/pluginfile.php/187461973/mod_resource/content/18/Syllabus2025_26.pdf",
+        "Downloaded via view page: \"Syllabus 25/26 File\" (292 KB)"
+      ],
+      "domStats": {
+        "sectionCount": 2,
+        "resourceCount": 12,
+        "pdfResources": 2,
+        "pptResources": 0
+      },
+      "pdfFilterStats": {
+        "inputResources": 6,
+        "pdfResources": 1,
+        "pptResources": 0,
+        "selectedResources": 1
+      }
+    }
+  },
+  "providerTrace": {
+    "requestedProvider": "auto",
+    "finalProvider": "gemini",
+    "attempts": [
+      {
+        "provider": "gemini",
+        "ok": true
+      }
+    ]
+  },
+  "schemaValidationTrace": {
+    "attempts": 1,
+    "repairedAttempts": 0,
+    "providerPayloadErrors": []
+  },
+  "writtenAt": "2026-03-05T10:15:00.926Z"
+}

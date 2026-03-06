@@ -1,39 +1,11 @@
-2026/03/04-11:03:15.735 1eaaa93 Reusing MANIFEST /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/MANIFEST-000001
-2026/03/04-11:03:15.738 1eaaa93 Recovering log #110
-2026/03/04-11:03:15.739 1eaaa93 Level-0 table #113: started
-2026/03/04-11:03:15.744 1eaaa93 Level-0 table #113: 25827 bytes OK
-2026/03/04-11:03:15.745 1eaaa93 Recovering log #112
-2026/03/04-11:03:15.747 1eaaa93 Reusing old log /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/000112.log 
-2026/03/04-11:03:15.755 1eaaa93 Delete type=0 #110
-2026/03/04-11:03:15.756 1eaaa97 Compacting 4@0 + 1@1 files
-2026/03/04-11:03:15.770 1eaaa97 Generated table #114@0: 192 keys, 812148 bytes
-2026/03/04-11:03:15.770 1eaaa97 Compacted 4@0 + 1@1 files => 812148 bytes
-2026/03/04-11:03:15.772 1eaaa97 compacted to: files[ 0 1 0 0 0 0 0 ]
-2026/03/04-11:03:15.772 1eaaa97 Delete type=2 #105
-2026/03/04-11:03:15.772 1eaaa97 Delete type=2 #111
-2026/03/04-11:03:15.772 1eaaa97 Delete type=2 #107
-2026/03/04-11:03:15.772 1eaaa97 Delete type=2 #113
-2026/03/04-11:03:15.772 1eaaa97 Delete type=2 #109
-2026/03/04-11:03:26.830 1eaaa97 Level-0 table #116: started
-2026/03/04-11:03:26.841 1eaaa97 Level-0 table #116: 26367 bytes OK
-2026/03/04-11:03:26.848 1eaaa97 Delete type=0 #112
-2026/03/04-11:03:31.206 1eaaa97 Level-0 table #118: started
-2026/03/04-11:03:31.214 1eaaa97 Level-0 table #118: 25836 bytes OK
-2026/03/04-11:03:31.217 1eaaa97 Delete type=0 #115
-2026/03/04-11:03:36.439 1eaaa97 Level-0 table #120: started
-2026/03/04-11:03:36.444 1eaaa97 Level-0 table #120: 25836 bytes OK
-2026/03/04-11:03:36.449 1eaaa97 Delete type=0 #117
-2026/03/04-11:03:44.907 1eaaa97 Level-0 table #122: started
-2026/03/04-11:03:44.913 1eaaa97 Level-0 table #122: 25836 bytes OK
-2026/03/04-11:03:44.918 1eaaa97 Delete type=0 #119
-2026/03/04-11:03:44.918 1eaaa97 Compacting 4@0 + 1@1 files
-2026/03/04-11:03:44.935 1eaaa97 Generated table #123@0: 195 keys, 812132 bytes
-2026/03/04-11:03:44.935 1eaaa97 Compacted 4@0 + 1@1 files => 812132 bytes
-2026/03/04-11:03:44.936 1eaaa97 compacted to: files[ 0 1 0 0 0 0 0 ]
-2026/03/04-11:03:44.937 1eaaa97 Delete type=2 #116
-2026/03/04-11:03:44.937 1eaaa97 Delete type=2 #114
-2026/03/04-11:03:44.937 1eaaa97 Delete type=2 #122
-2026/03/04-11:03:44.937 1eaaa97 Delete type=2 #120
-2026/03/04-11:03:44.937 1eaaa97 Delete type=2 #118
-2026/03/04-11:03:48.486 1eaaa93 Level-0 table #125: started
-2026/03/04-11:03:48.490 1eaaa93 Level-0 table #125: 25836 bytes OK
+2026/03/05-11:15:37.370 1f7cadf Reusing MANIFEST /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/MANIFEST-000001
+2026/03/05-11:15:37.371 1f7cadf Recovering log #144
+2026/03/05-11:15:37.371 1f7cadf Reusing old log /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/000144.log 
+2026/03/05-11:15:45.201 1f7cae7 Level-0 table #148: started
+2026/03/05-11:15:45.207 1f7cae7 Level-0 table #148: 45021 bytes OK
+2026/03/05-11:15:45.210 1f7cae7 Delete type=0 #144
+2026/03/05-11:15:50.783 1f7cae7 Level-0 table #150: started
+2026/03/05-11:15:50.792 1f7cae7 Level-0 table #150: 44887 bytes OK
+2026/03/05-11:15:50.797 1f7cae7 Delete type=0 #147
+2026/03/05-11:15:53.547 1f7cadf Level-0 table #152: started
+2026/03/05-11:15:53.550 1f7cadf Level-0 table #152: 44887 bytes OK
