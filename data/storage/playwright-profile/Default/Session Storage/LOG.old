@@ -1,20 +1,11 @@
-2026/03/05-11:14:37.446 1f7c673 Reusing MANIFEST /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/MANIFEST-000001
-2026/03/05-11:14:37.447 1f7c673 Recovering log #136
-2026/03/05-11:14:37.447 1f7c673 Level-0 table #139: started
-2026/03/05-11:14:37.451 1f7c673 Level-0 table #139: 12779 bytes OK
-2026/03/05-11:14:37.453 1f7c673 Delete type=0 #136
-2026/03/05-11:14:46.501 1f7c677 Level-0 table #142: started
-2026/03/05-11:14:46.505 1f7c677 Level-0 table #142: 44737 bytes OK
-2026/03/05-11:14:46.511 1f7c677 Delete type=0 #140
-2026/03/05-11:14:46.511 1f7c677 Compacting 4@0 + 1@1 files
-2026/03/05-11:14:46.527 1f7c677 Generated table #143@0: 233 keys, 868408 bytes
-2026/03/05-11:14:46.528 1f7c677 Compacted 4@0 + 1@1 files => 868408 bytes
-2026/03/05-11:14:46.529 1f7c677 compacted to: files[ 0 1 0 0 0 0 0 ]
-2026/03/05-11:14:46.530 1f7c677 Delete type=2 #139
-2026/03/05-11:14:46.530 1f7c677 Delete type=2 #142
-2026/03/05-11:14:46.530 1f7c677 Delete type=2 #137
-2026/03/05-11:14:46.532 1f7c677 Delete type=2 #135
-2026/03/05-11:14:46.532 1f7c677 Delete type=2 #133
-2026/03/05-11:14:49.042 1f7c677 Level-0 table #145: started
-2026/03/05-11:14:49.046 1f7c677 Level-0 table #145: 44890 bytes OK
-2026/03/05-11:14:49.051 1f7c677 Delete type=0 #141
+2026/03/05-11:15:37.370 1f7cadf Reusing MANIFEST /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/MANIFEST-000001
+2026/03/05-11:15:37.371 1f7cadf Recovering log #144
+2026/03/05-11:15:37.371 1f7cadf Reusing old log /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/000144.log 
+2026/03/05-11:15:45.201 1f7cae7 Level-0 table #148: started
+2026/03/05-11:15:45.207 1f7cae7 Level-0 table #148: 45021 bytes OK
+2026/03/05-11:15:45.210 1f7cae7 Delete type=0 #144
+2026/03/05-11:15:50.783 1f7cae7 Level-0 table #150: started
+2026/03/05-11:15:50.792 1f7cae7 Level-0 table #150: 44887 bytes OK
+2026/03/05-11:15:50.797 1f7cae7 Delete type=0 #147
+2026/03/05-11:15:53.547 1f7cadf Level-0 table #152: started
+2026/03/05-11:15:53.550 1f7cadf Level-0 table #152: 44887 bytes OK

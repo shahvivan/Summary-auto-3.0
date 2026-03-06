@@ -1,11 +1,39 @@
-2026/03/05-11:15:37.370 1f7cadf Reusing MANIFEST /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/MANIFEST-000001
-2026/03/05-11:15:37.371 1f7cadf Recovering log #144
-2026/03/05-11:15:37.371 1f7cadf Reusing old log /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/000144.log 
-2026/03/05-11:15:45.201 1f7cae7 Level-0 table #148: started
-2026/03/05-11:15:45.207 1f7cae7 Level-0 table #148: 45021 bytes OK
-2026/03/05-11:15:45.210 1f7cae7 Delete type=0 #144
-2026/03/05-11:15:50.783 1f7cae7 Level-0 table #150: started
-2026/03/05-11:15:50.792 1f7cae7 Level-0 table #150: 44887 bytes OK
-2026/03/05-11:15:50.797 1f7cae7 Delete type=0 #147
-2026/03/05-11:15:53.547 1f7cadf Level-0 table #152: started
-2026/03/05-11:15:53.550 1f7cadf Level-0 table #152: 44887 bytes OK
+2026/03/06-15:15:03.224 1ff3965 Reusing MANIFEST /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/MANIFEST-000001
+2026/03/06-15:15:03.225 1ff3965 Recovering log #149
+2026/03/06-15:15:03.226 1ff3965 Level-0 table #152: started
+2026/03/06-15:15:03.258 1ff3965 Level-0 table #152: 44887 bytes OK
+2026/03/06-15:15:03.258 1ff3965 Recovering log #151
+2026/03/06-15:15:03.260 1ff3965 Reusing old log /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/000151.log 
+2026/03/06-15:15:03.265 1ff3965 Delete type=0 #149
+2026/03/06-15:15:03.268 1ff396c Compacting 4@0 + 1@1 files
+2026/03/06-15:15:03.281 1ff396c Generated table #153@0: 251 keys, 1002123 bytes
+2026/03/06-15:15:03.281 1ff396c Compacted 4@0 + 1@1 files => 1002123 bytes
+2026/03/06-15:15:03.283 1ff396c compacted to: files[ 0 1 0 0 0 0 0 ]
+2026/03/06-15:15:03.283 1ff396c Delete type=2 #148
+2026/03/06-15:15:03.283 1ff396c Delete type=2 #143
+2026/03/06-15:15:03.283 1ff396c Delete type=2 #152
+2026/03/06-15:15:03.283 1ff396c Delete type=2 #145
+2026/03/06-15:15:03.283 1ff396c Delete type=2 #150
+2026/03/06-15:15:16.705 1ff396c Level-0 table #155: started
+2026/03/06-15:15:16.712 1ff396c Level-0 table #155: 45923 bytes OK
+2026/03/06-15:15:16.717 1ff396c Delete type=0 #151
+2026/03/06-15:15:19.582 1ff396c Level-0 table #157: started
+2026/03/06-15:15:19.589 1ff396c Level-0 table #157: 45630 bytes OK
+2026/03/06-15:15:19.593 1ff396c Delete type=0 #154
+2026/03/06-15:15:23.192 1ff396c Level-0 table #159: started
+2026/03/06-15:15:23.201 1ff396c Level-0 table #159: 45630 bytes OK
+2026/03/06-15:15:23.208 1ff396c Delete type=0 #156
+2026/03/06-15:15:25.819 1ff396c Level-0 table #161: started
+2026/03/06-15:15:25.825 1ff396c Level-0 table #161: 45630 bytes OK
+2026/03/06-15:15:25.829 1ff396c Delete type=0 #158
+2026/03/06-15:15:25.836 1ff396c Compacting 4@0 + 1@1 files
+2026/03/06-15:15:25.854 1ff396c Generated table #162@0: 266 keys, 1094300 bytes
+2026/03/06-15:15:25.854 1ff396c Compacted 4@0 + 1@1 files => 1094300 bytes
+2026/03/06-15:15:25.856 1ff396c compacted to: files[ 0 1 0 0 0 0 0 ]
+2026/03/06-15:15:25.856 1ff396c Delete type=2 #161
+2026/03/06-15:15:25.857 1ff396c Delete type=2 #159
+2026/03/06-15:15:25.857 1ff396c Delete type=2 #155
+2026/03/06-15:15:25.857 1ff396c Delete type=2 #157
+2026/03/06-15:15:25.857 1ff396c Delete type=2 #153
+2026/03/06-15:15:27.538 1ff396c Level-0 table #164: started
+2026/03/06-15:15:27.542 1ff396c Level-0 table #164: 45630 bytes OK
