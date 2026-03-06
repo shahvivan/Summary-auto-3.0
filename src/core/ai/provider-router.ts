@@ -228,9 +228,21 @@ function misconfiguredError(provider: "gemini" | "chatpdf"): Error {
 }
 
 // ---------------------------------------------------------------------------
-// Native PDF summarisation via Gemini Files API
+// Native PDF summarisation — send PDF bytes directly to Gemini
 // ---------------------------------------------------------------------------
 
+/**
+ * Ask Gemini to summarise a PDF by sending the raw bytes directly.
+ *
+ * Strategy (in priority order):
+ *  1. Inline base64 — single HTTP request, no upload/polling needed.
+ *     Works for PDFs up to ~15 MB (the vast majority of lecture slides).
+ *  2. Files API — upload → poll until ACTIVE → generate.
+ *     Used as fallback only when the PDF is too large for inline.
+ *
+ * Gemini reads the PDF *visually* — no pdf-parse, no garbled text, no
+ * copyright watermarks leaking into the summary.
+ */
 async function summarizeOnePdfNative(
   gemini: GeminiProvider,
   pdf: ParsedPdf,
@@ -238,26 +250,55 @@ async function summarizeOnePdfNative(
 ): Promise<{ summary: SummaryOutput; schemaValidationTrace: SchemaValidationTrace }> {
   if (!pdf.rawBytes) throw new Error("No raw bytes available for native PDF summarisation");
 
-  const fileUri = await gemini.uploadFile(pdf.rawBytes, "application/pdf", `${pdf.sourceTitle}.pdf`);
+  const prompt = buildNativePdfPrompt(courseName, pdf.sourceTitle);
+  const payloadErrors: string[] = [];
+  const pdfSizeMb = pdf.rawBytes.length / (1024 * 1024);
 
-  try {
-    const prompt = buildNativePdfPrompt(courseName, pdf.sourceTitle);
-    const payloadErrors: string[] = [];
+  // Helper: parse & validate a raw Gemini response string
+  function tryParse(raw: string): SummaryOutput {
+    const json = extractJsonFromText(raw);
+    const parsed = summarySchema.parse(json);
+    return normalizeSummaryOutput(parsed);
+  }
 
+  // ── Path 1: inline base64 (preferred — simpler, faster, no upload step) ──
+  if (pdfSizeMb < 15) {
     for (let attempt = 1; attempt <= 2; attempt++) {
-      const raw = await gemini.generateWithFileUri(fileUri, "application/pdf", prompt);
       try {
-        const json = extractJsonFromText(raw);
-        const parsed = summarySchema.parse(json);
-        const summary = normalizeSummaryOutput(parsed);
-        return { summary, schemaValidationTrace: { attempts: attempt, repairedAttempts: attempt - 1, providerPayloadErrors: payloadErrors } };
+        const raw = await gemini.generateWithInlinePdf(pdf.rawBytes, prompt);
+        const summary = tryParse(raw);
+        return {
+          summary,
+          schemaValidationTrace: { attempts: attempt, repairedAttempts: attempt - 1, providerPayloadErrors: payloadErrors },
+        };
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
-        payloadErrors.push(msg);
+        payloadErrors.push(`inline attempt ${attempt}: ${msg}`);
+        logWarn(`[provider-router] Inline PDF attempt ${attempt} failed for "${pdf.sourceTitle}": ${msg}`);
       }
     }
+    // Both inline attempts failed — fall through to Files API
+    logWarn(`[provider-router] Inline path exhausted for "${pdf.sourceTitle}" — trying Files API`);
+  }
 
-    throw new Error(`Native PDF schema validation failed: ${payloadErrors.at(-1) ?? "unknown"}`);
+  // ── Path 2: Files API (for large PDFs or when inline failed) ──────────────
+  const fileUri = await gemini.uploadFile(pdf.rawBytes, "application/pdf", `${pdf.sourceTitle}.pdf`);
+  try {
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const raw = await gemini.generateWithFileUri(fileUri, "application/pdf", prompt);
+        const summary = tryParse(raw);
+        return {
+          summary,
+          schemaValidationTrace: { attempts: attempt, repairedAttempts: attempt - 1, providerPayloadErrors: payloadErrors },
+        };
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        payloadErrors.push(`files-api attempt ${attempt}: ${msg}`);
+        logWarn(`[provider-router] Files API attempt ${attempt} failed for "${pdf.sourceTitle}": ${msg}`);
+      }
+    }
+    throw new Error(`All native PDF attempts failed. Errors: ${payloadErrors.join(" | ")}`);
   } finally {
     await gemini.deleteFile(fileUri).catch(() => undefined);
   }
@@ -418,17 +459,24 @@ export async function summarizeMultiMaterialWithProviderRouter(params: {
     return { materialSummaries: items, mergedSummary: det.summary, providerTrace: det.providerTrace, schemaValidationTrace: det.schemaValidationTrace };
   }
 
-  // Split: PDFs needing native Gemini Files API vs text-based
+  // Split: PDFs needing native Gemini Files API vs text-based.
+  // IMPORTANT: a PDF may have BOTH rawBytes (Playwright download) AND extracted text
+  // (pdf-parse). We must only send it through ONE path — otherwise composeMergedSummary
+  // flatMaps both summaries and the garbage text-path output pollutes the good native output.
   const nativeCandidates = params.parsedPdfs.filter((pdf) => pdf.rawBytes && pdf.rawBytes.length > 0);
-  const textCandidates = params.parsedPdfs.filter((pdf) => pdf.text.trim().length > 0);
+  // Text-only candidates: PDFs that were NOT pre-downloaded (no rawBytes) but DO have text.
+  const nativeIds = new Set(nativeCandidates.map((pdf) => pdf.resourceId));
+  const textCandidates = params.parsedPdfs.filter(
+    (pdf) => !nativeIds.has(pdf.resourceId) && pdf.text.trim().length > 0,
+  );
 
   if (nativeCandidates.length > 0 && geminiConfigured) {
-    logInfo(`[provider-router] Using Gemini Files API for ${nativeCandidates.length} image-based PDF(s)`);
+    logInfo(`[provider-router] Using Gemini Files API for ${nativeCandidates.length} image-based PDF(s); text-only: ${textCandidates.length}`);
     const allItems: PerMaterialSummaryItem[] = [];
     const allErrors: string[] = [];
     let totalAttempts = 0;
 
-    // Native path: one call per image-based PDF
+    // Native path: one call per image-based PDF (Gemini reads the PDF visually)
     for (const pdf of nativeCandidates) {
       try {
         const { summary, schemaValidationTrace } = await summarizeOnePdfNative(gemini, pdf, params.courseName);
@@ -436,18 +484,45 @@ export async function summarizeMultiMaterialWithProviderRouter(params: {
         totalAttempts += schemaValidationTrace.attempts;
         allErrors.push(...schemaValidationTrace.providerPayloadErrors);
         attempts.push({ provider: "gemini", ok: true });
+        logInfo(`[provider-router] Native PDF succeeded for "${pdf.sourceTitle}"`);
       } catch (err) {
         const reason = err instanceof Error ? err.message : String(err);
-        logWarn(`[provider-router] Native PDF failed for "${pdf.sourceTitle}": ${reason}`);
+        logWarn(`[provider-router] Native PDF FAILED for "${pdf.sourceTitle}": ${reason}`);
         attempts.push({ provider: "gemini", ok: false, reason });
-        // Deterministic fallback for this single document
-        const det = generateDeterministicSummary(params.chunks, params.courseName);
-        allItems.push({ resourceId: pdf.resourceId, title: pdf.sourceTitle, url: pdf.sourceUrl, summary: det });
-        totalAttempts += 1;
+
+        // Fallback: try the text path with whatever cleaned text we have.
+        // This is far better than the deterministic summarizer which just
+        // produces keyword lists from raw (possibly still dirty) chunks.
+        const cleanedText = pdf.text.trim();
+        if (cleanedText.length > 100) {
+          try {
+            logInfo(`[provider-router] Falling back to text path for "${pdf.sourceTitle}" (${cleanedText.length} chars)`);
+            const fallbackPrompt = buildSingleDocPrompt(
+              [{ chunkId: `${pdf.resourceId}-fallback`, resourceId: pdf.resourceId, sourceTitle: pdf.sourceTitle, order: 0, text: cleanedText }],
+              params.courseName,
+            );
+            const { summary, schemaValidationTrace } = await runProviderWithValidation(gemini, fallbackPrompt);
+            allItems.push({ resourceId: pdf.resourceId, title: pdf.sourceTitle, url: pdf.sourceUrl, summary });
+            totalAttempts += schemaValidationTrace.attempts;
+            allErrors.push(...schemaValidationTrace.providerPayloadErrors);
+            attempts.push({ provider: "gemini", ok: true });
+          } catch (textErr) {
+            const textReason = textErr instanceof Error ? textErr.message : String(textErr);
+            logWarn(`[provider-router] Text fallback also failed for "${pdf.sourceTitle}": ${textReason}`);
+            const det = generateDeterministicSummary(params.chunks, params.courseName);
+            allItems.push({ resourceId: pdf.resourceId, title: pdf.sourceTitle, url: pdf.sourceUrl, summary: det });
+            totalAttempts += 1;
+          }
+        } else {
+          // No usable text — true last resort
+          const det = generateDeterministicSummary(params.chunks, params.courseName);
+          allItems.push({ resourceId: pdf.resourceId, title: pdf.sourceTitle, url: pdf.sourceUrl, summary: det });
+          totalAttempts += 1;
+        }
       }
     }
 
-    // Text-based path for docs where extraction succeeded
+    // Text-based path ONLY for PDFs that were not processed via the native path
     if (textCandidates.length > 0) {
       const textPrompt = buildMultiMaterialPrompt(textCandidates, params.courseName);
       try {

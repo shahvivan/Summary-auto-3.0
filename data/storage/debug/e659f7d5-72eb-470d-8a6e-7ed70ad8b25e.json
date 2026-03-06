@@ -1,0 +1,101 @@
+{
+  "runId": "e659f7d5-72eb-470d-8a6e-7ed70ad8b25e",
+  "sessionId": "2026-03-06-accounting-i-bba-dbai-gbl-manual-1772806500350",
+  "courseKey": "accounting-i-bba-dbai-gbl",
+  "resolver": {
+    "selectedSectionId": "section-8",
+    "selectedSectionTitle": "Planning session 4 File",
+    "pdfLinks": [
+      {
+        "id": "resource-1-6",
+        "title": "SESSION 4. ACCOUNTS, ENTRIES AND ACCOUNTING BOOKS. SLIDES File",
+        "url": "https://ecampus.esade.edu/mod/resource/view.php?id=5149900",
+        "type": "pdf",
+        "orderIndex": 5
+      }
+    ],
+    "debug": {
+      "allSections": [
+        {
+          "sectionId": "section-8",
+          "sectionTitle": "Planning session 4 File",
+          "score": 13.2,
+          "reasons": [
+            "academicMarker",
+            "topicExact",
+            "historicalAnchor",
+            "orderBoost:0.00",
+            "topicRecency:4",
+            "resourceDensity:2"
+          ],
+          "pdfCount": 2
+        },
+        {
+          "sectionId": "yui_3_18_1_1_1772810564986_245",
+          "sectionTitle": "Planning session 4 File",
+          "score": 11.9,
+          "reasons": [
+            "academicMarker",
+            "topicExact",
+            "orderBoost:2.20",
+            "topicRecency:4",
+            "resourceDensity:2"
+          ],
+          "pdfCount": 2
+        }
+      ],
+      "overrideApplied": "anchor",
+      "confidenceScore": 1,
+      "selectedReason": "historical anchor",
+      "navigationSteps": [
+        "Opened Moodle base URL: https://ecampus.esade.edu/my/",
+        "Opened course URL: https://ecampus.esade.edu/course/view.php?id=44311",
+        "Navigated to topic tab 4 (URL: https://ecampus.esade.edu/course/view.php?id=44311&section=8#tabs-tree-start)",
+        "Clicked global Expand all button",
+        "Expanded 9 individual collapsible controls",
+        "Direct fetch returned HTML for \"Planning session 4 File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Planning session 4 File\": https://ecampus.esade.edu/pluginfile.php/187462147/mod_resource/content/11/25planning4.pdf",
+        "Downloaded via view page: \"Planning session 4 File\" (143 KB)",
+        "Direct fetch returned HTML for \"SESSION 4. ACCOUNTS, ENTRIES AND ACCOUNTING BOOKS. SLIDES File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"SESSION 4. ACCOUNTS, ENTRIES AND ACCOUNTING BOOKS. SLIDES File\": https://ecampus.esade.edu/pluginfile.php/187462183/mod_resource/content/9/25_ACCOUNTSANDBOOKS.pdf",
+        "Downloaded via view page: \"SESSION 4. ACCOUNTS, ENTRIES AND ACCOUNTING BOOKS. SLIDES File\" (555 KB)",
+        "Direct fetch returned HTML for \"Planning session 4 File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Planning session 4 File\": https://ecampus.esade.edu/pluginfile.php/187462147/mod_resource/content/11/25planning4.pdf",
+        "Downloaded via view page: \"Planning session 4 File\" (143 KB)",
+        "Direct fetch returned HTML for \"SESSION 4. ACCOUNTS, ENTRIES AND ACCOUNTING BOOKS. SLIDES File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"SESSION 4. ACCOUNTS, ENTRIES AND ACCOUNTING BOOKS. SLIDES File\": https://ecampus.esade.edu/pluginfile.php/187462183/mod_resource/content/9/25_ACCOUNTSANDBOOKS.pdf",
+        "Downloaded via view page: \"SESSION 4. ACCOUNTS, ENTRIES AND ACCOUNTING BOOKS. SLIDES File\" (555 KB)"
+      ],
+      "domStats": {
+        "sectionCount": 2,
+        "resourceCount": 16,
+        "pdfResources": 4,
+        "pptResources": 0
+      },
+      "pdfFilterStats": {
+        "inputResources": 8,
+        "pdfResources": 1,
+        "pptResources": 0,
+        "selectedResources": 1
+      }
+    }
+  },
+  "providerTrace": {
+    "requestedProvider": "auto",
+    "finalProvider": "deterministic",
+    "attempts": [
+      {
+        "provider": "gemini",
+        "ok": false,
+        "reason": "Gemini transport failure (403): {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"Your API key was reported as leaked. Please use another API key.\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
+      }
+    ],
+    "fallbackReason": "all_providers_failed"
+  },
+  "schemaValidationTrace": {
+    "attempts": 1,
+    "repairedAttempts": 0,
+    "providerPayloadErrors": []
+  },
+  "writtenAt": "2026-03-06T15:22:59.845Z"
+}

@@ -5,6 +5,23 @@ import type { ScheduleEvent, Session } from "../../types/domain.js";
 import { logInfo, logWarn } from "../../utils/logger.js";
 import { normalizeCourseKey, slugify } from "../../utils/text.js";
 
+// ---------------------------------------------------------------------------
+// In-memory ICS cache — avoids re-fetching the remote ICS URL on every
+// /api/today request.  A 60-second TTL collapses the burst of rapid requests
+// that tsx --watch produces on startup while still picking up calendar changes.
+// ---------------------------------------------------------------------------
+interface EventsCache {
+  events: ScheduleEvent[];
+  expiresAt: number;
+}
+let _eventsCache: EventsCache | null = null;
+const CACHE_TTL_MS = 60_000; // 60 seconds
+
+/** Invalidate the in-memory cache (useful for tests or a forced refresh). */
+export function clearEventsCache(): void {
+  _eventsCache = null;
+}
+
 interface CalendarLoadSources {
   loadIcs: () => Promise<ScheduleEvent[]>;
   loadMock: () => Promise<ScheduleEvent[]>;
@@ -51,10 +68,18 @@ export async function loadScheduleEventsWithSources(
 }
 
 export async function loadScheduleEvents(): Promise<ScheduleEvent[]> {
-  return loadScheduleEventsWithSources({
+  const now = Date.now();
+  if (_eventsCache && now < _eventsCache.expiresAt) {
+    return _eventsCache.events;
+  }
+
+  const events = await loadScheduleEventsWithSources({
     loadIcs: () => loadCalendarEventsFromIcs(config.calendarIcsUrl),
     loadMock: loadCalendarEvents,
   });
+
+  _eventsCache = { events, expiresAt: now + CACHE_TTL_MS };
+  return events;
 }
 
 export async function getEventsForDate(date: string): Promise<ScheduleEvent[]> {

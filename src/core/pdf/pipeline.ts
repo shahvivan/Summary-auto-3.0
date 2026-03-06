@@ -4,6 +4,7 @@ import type { MaterialLink, ParsedPdf, TextChunk } from "../../types/domain.js";
 import { ensureDir, readJsonFile, writeJsonFile } from "../../utils/fs.js";
 import { shaLike } from "../../utils/text.js";
 import { chunkParsedPdfs } from "./chunker.js";
+import { cleanExtractedText } from "./cleaner.js";
 import { downloadPdf } from "./downloader.js";
 import { extractPdfText } from "./parser.js";
 
@@ -60,28 +61,36 @@ export async function processPdfLinks(params: {
     console.log(`[pdf-pipeline] Processing "${link.title}" | url="${link.url.slice(0, 100)}"`);
 
     const file = cacheFile(params.courseKey, link.id);
-    const cached = await readJsonFile<PdfCacheEntry | null>(file, null);
-    if (cached && cached.sourceUrl === link.url && cached.text.trim().length > 0) {
-      console.log(`[pdf-pipeline] Cache hit for "${link.title}" (${cached.text.length} chars)`);
-      parsedPdfs.push({
-        resourceId: link.id,
-        sourceTitle: link.title,
-        sourceUrl: link.url,
-        text: cached.text,
-      });
-      materialRecords.push({
-        resourceId: link.id,
-        title: link.title,
-        url: link.url,
-        contentHash: cached.contentHash,
-        extractedText: cached.text,
-      });
-      continue;
-    }
 
     // 1. Try pre-downloaded bytes from Playwright context (most reliable)
     const preDownloaded = params.preDownloadedFiles?.[link.url];
     let downloadedBytes: Buffer | undefined;
+
+    // Only use the text cache when we do NOT have fresh pre-downloaded bytes.
+    // When Playwright pre-downloaded the file we always want Gemini to read the
+    // actual PDF visually (native Files API path) rather than reusing stale
+    // extracted text — which is typically garbled for slide-based PDFs because
+    // pdf-parse loses spacing on absolutely-positioned slide elements.
+    if (!preDownloaded) {
+      const cached = await readJsonFile<PdfCacheEntry | null>(file, null);
+      if (cached && cached.sourceUrl === link.url && cached.text.trim().length > 0) {
+        console.log(`[pdf-pipeline] Cache hit for "${link.title}" (${cached.text.length} chars)`);
+        parsedPdfs.push({
+          resourceId: link.id,
+          sourceTitle: link.title,
+          sourceUrl: link.url,
+          text: cached.text,
+        });
+        materialRecords.push({
+          resourceId: link.id,
+          title: link.title,
+          url: link.url,
+          contentHash: cached.contentHash,
+          extractedText: cached.text,
+        });
+        continue;
+      }
+    }
 
     if (preDownloaded && preDownloaded.length > 0) {
       console.log(`[pdf-pipeline] Using pre-downloaded bytes for "${link.title}" (${(preDownloaded.length / 1024).toFixed(0)} KB)`);
@@ -115,17 +124,20 @@ export async function processPdfLinks(params: {
       }
     }
 
-    // 3. Extract text
+    // 3. Extract text then clean it (remove copyright watermarks, fused words, etc.)
     let text = "";
     try {
-      text = await extractPdfText({
+      const rawText = await extractPdfText({
         resourceId: link.id,
         sourceTitle: link.title,
         sourceUrl: link.url,
         sourceType: link.type ?? "pdf",
         bytes: downloadedBytes,
       });
-      console.log(`[pdf-pipeline] Extracted ${text.length} chars from "${link.title}"`);
+      // Clean garbage that pdf-parse produces from slide PDFs (absolute positioning
+      // loses word spacing, copyright appears on every slide, etc.)
+      text = cleanExtractedText(rawText);
+      console.log(`[pdf-pipeline] Extracted ${rawText.length} chars, cleaned to ${text.length} chars from "${link.title}"`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.warn(`[pdf-pipeline] Text extraction failed for "${link.title}": ${msg} — using raw bytes path`);
@@ -149,7 +161,10 @@ export async function processPdfLinks(params: {
       sourceTitle: link.title,
       sourceUrl: link.url,
       text,
-      rawBytes: text.trim().length === 0 ? downloadedBytes : undefined,
+      // Always provide raw bytes so Gemini can read the PDF visually via the
+      // Files API rather than processing the garbled text that pdf-parse
+      // produces from slide PDFs (absolute-positioned text loses all spacing).
+      rawBytes: downloadedBytes,
     });
     materialRecords.push({
       resourceId: link.id,

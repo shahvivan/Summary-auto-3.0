@@ -832,9 +832,15 @@ export function cleanupOrphanedSessions(date: string, keepSessionIds: Set<string
 }
 
 /**
- * Clear all run history so the dashboard shows a clean slate on next open.
- * Also resets each session's `last_run_id` and `status` so sessions appear
- * as "not run" rather than carrying over error/completed state.
+ * Clear all run history AND all auto-created sessions so the dashboard shows
+ * a completely clean slate on every server restart.
+ *
+ * Sessions are fully deleted (not just reset) so the frontend re-creates them
+ * fresh from ICS on the next page load — no stale "failed" or "done" cards
+ * from previous runs will appear.
+ *
+ * Manual sessions (session_id contains "-manual-") are preserved so that any
+ * user-created overrides survive restarts.
  *
  * Call this at server startup so every `npm run dev` starts fresh.
  */
@@ -846,8 +852,9 @@ export function clearAllRuns(): void {
     db.prepare("DELETE FROM materials").run();
     db.prepare("DELETE FROM resolver_debug").run();
     db.prepare("DELETE FROM runs").run();
-    // Reset every session back to pending so cards show "Run Now" not an old status.
-    db.prepare("UPDATE sessions SET status = 'pending', last_run_id = NULL").run();
+    // Delete all auto-generated sessions so the page is completely fresh.
+    // Manual sessions (containing "-manual-") are kept intact.
+    db.prepare("DELETE FROM sessions WHERE session_id NOT LIKE '%-manual-%'").run();
   })();
 }
 

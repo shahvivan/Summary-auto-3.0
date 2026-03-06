@@ -1,0 +1,117 @@
+{
+  "runId": "844fc087-2679-4e9a-88be-6dfaa02cd09b",
+  "sessionId": "2026-03-06-accounting-i-bba-dbai-gbl-manual-1772813186315",
+  "courseKey": "accounting-i-bba-dbai-gbl",
+  "resolver": {
+    "selectedSectionId": "section-6",
+    "selectedSectionTitle": "Planning session 2 File",
+    "pdfLinks": [
+      {
+        "id": "resource-1-8",
+        "title": "SESSION 2. The Income Statement and accounting principles. Slides File",
+        "url": "https://ecampus.esade.edu/mod/resource/view.php?id=5149774",
+        "type": "pdf",
+        "orderIndex": 7
+      }
+    ],
+    "debug": {
+      "allSections": [
+        {
+          "sectionId": "section-2",
+          "sectionTitle": "Planning session 2 File",
+          "score": 14.1,
+          "reasons": [
+            "academicMarker",
+            "topicExact",
+            "orderBoost:2.20",
+            "topicRecency:2",
+            "resourceDensity:5"
+          ],
+          "pdfCount": 5
+        },
+        {
+          "sectionId": "section-6",
+          "sectionTitle": "Planning session 2 File",
+          "score": 11.9,
+          "reasons": [
+            "academicMarker",
+            "topicExact",
+            "orderBoost:0.00",
+            "topicRecency:2",
+            "resourceDensity:5"
+          ],
+          "pdfCount": 5
+        }
+      ],
+      "overrideApplied": "topicNumber",
+      "confidenceScore": 0.844,
+      "selectedReason": "strict topic number override",
+      "navigationSteps": [
+        "Opened Moodle base URL: https://ecampus.esade.edu/my/",
+        "Opened course URL: https://ecampus.esade.edu/course/view.php?id=44311",
+        "Navigated to topic tab 2 (URL: https://ecampus.esade.edu/course/view.php?id=44311&section=6#tabs-tree-start)",
+        "Clicked global Expand all button",
+        "Expanded 4 individual collapsible controls",
+        "Direct fetch returned HTML for \"Planning session 2 File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Planning session 2 File\": https://ecampus.esade.edu/pluginfile.php/187462030/mod_resource/content/11/25_planning2.pdf",
+        "Downloaded via view page: \"Planning session 2 File\" (56 KB)",
+        "Direct fetch returned HTML for \"Assignment 1 File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Assignment 1 File\": https://ecampus.esade.edu/pluginfile.php/187602145/mod_resource/content/13/25assig1Eng%20.pdf",
+        "Downloaded via view page: \"Assignment 1 File\" (91 KB)",
+        "Direct fetch returned HTML for \"Assignment 1 solution File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Assignment 1 solution File\": https://ecampus.esade.edu/pluginfile.php/187602148/mod_resource/content/13/25Assignment%201%20soluti",
+        "Downloaded via view page: \"Assignment 1 solution File\" (174 KB)",
+        "Direct fetch returned HTML for \"ANNUAL REPORT LEGO 2024 File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"ANNUAL REPORT LEGO 2024 File\": https://ecampus.esade.edu/pluginfile.php/187462042/mod_resource/content/7/the_LEGO_Group_Annual_Repo",
+        "Downloaded via view page: \"ANNUAL REPORT LEGO 2024 File\" (13089 KB)",
+        "Direct fetch returned HTML for \"SESSION 2. The Income Statement and accounting principles. Slides File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"SESSION 2. The Income Statement and accounting principles. Slides File\": https://ecampus.esade.edu/pluginfile.php/187462057/mod_resource/content/13/25%20IncomeStatement%20an",
+        "Downloaded via view page: \"SESSION 2. The Income Statement and accounting principles. Slides File\" (1192 KB)",
+        "Direct fetch returned HTML for \"Planning session 2 File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Planning session 2 File\": https://ecampus.esade.edu/pluginfile.php/187462030/mod_resource/content/11/25_planning2.pdf",
+        "Downloaded via view page: \"Planning session 2 File\" (56 KB)",
+        "Direct fetch returned HTML for \"Assignment 1 File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Assignment 1 File\": https://ecampus.esade.edu/pluginfile.php/187602145/mod_resource/content/13/25assig1Eng%20.pdf",
+        "Downloaded via view page: \"Assignment 1 File\" (91 KB)",
+        "Direct fetch returned HTML for \"Assignment 1 solution File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Assignment 1 solution File\": https://ecampus.esade.edu/pluginfile.php/187602148/mod_resource/content/13/25Assignment%201%20soluti",
+        "Downloaded via view page: \"Assignment 1 solution File\" (174 KB)",
+        "Direct fetch returned HTML for \"ANNUAL REPORT LEGO 2024 File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"ANNUAL REPORT LEGO 2024 File\": https://ecampus.esade.edu/pluginfile.php/187462042/mod_resource/content/7/the_LEGO_Group_Annual_Repo",
+        "Downloaded via view page: \"ANNUAL REPORT LEGO 2024 File\" (13089 KB)",
+        "Direct fetch returned HTML for \"SESSION 2. The Income Statement and accounting principles. Slides File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"SESSION 2. The Income Statement and accounting principles. Slides File\": https://ecampus.esade.edu/pluginfile.php/187462057/mod_resource/content/13/25%20IncomeStatement%20an",
+        "Downloaded via view page: \"SESSION 2. The Income Statement and accounting principles. Slides File\" (1192 KB)"
+      ],
+      "domStats": {
+        "sectionCount": 2,
+        "resourceCount": 20,
+        "pdfResources": 10,
+        "pptResources": 0
+      },
+      "pdfFilterStats": {
+        "inputResources": 10,
+        "pdfResources": 1,
+        "pptResources": 0,
+        "selectedResources": 1
+      }
+    }
+  },
+  "providerTrace": {
+    "requestedProvider": "auto",
+    "finalProvider": "gemini",
+    "attempts": [
+      {
+        "provider": "gemini",
+        "ok": false,
+        "reason": "Gemini file upload failed (403): {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"Your API key was reported as leaked. Please use another API key.\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
+      }
+    ]
+  },
+  "schemaValidationTrace": {
+    "attempts": 1,
+    "repairedAttempts": 0,
+    "providerPayloadErrors": []
+  },
+  "writtenAt": "2026-03-06T16:08:17.284Z"
+}
