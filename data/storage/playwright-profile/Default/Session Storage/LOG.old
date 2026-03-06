@@ -1,30 +1,9 @@
-2026/03/06-17:05:34.146 20111d9 Reusing MANIFEST /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/MANIFEST-000001
-2026/03/06-17:05:34.148 20111d9 Recovering log #252
-2026/03/06-17:05:34.153 20111d9 Level-0 table #256: started
-2026/03/06-17:05:34.161 20111d9 Level-0 table #256: 45126 bytes OK
-2026/03/06-17:05:34.161 20111d9 Recovering log #255
-2026/03/06-17:05:34.161 20111d9 Reusing old log /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/000255.log 
-2026/03/06-17:05:34.166 20111d9 Delete type=0 #252
-2026/03/06-17:05:46.139 20111dc Level-0 table #258: started
-2026/03/06-17:05:46.143 20111dc Level-0 table #258: 45874 bytes OK
-2026/03/06-17:05:46.147 20111dc Delete type=0 #255
-2026/03/06-17:05:47.516 20111dc Level-0 table #260: started
-2026/03/06-17:05:47.525 20111dc Level-0 table #260: 45084 bytes OK
-2026/03/06-17:05:47.527 20111dc Delete type=0 #257
-2026/03/06-17:05:48.682 20111dc Level-0 table #262: started
-2026/03/06-17:05:48.688 20111dc Level-0 table #262: 45084 bytes OK
-2026/03/06-17:05:48.693 20111dc Delete type=0 #259
-2026/03/06-17:05:48.694 20111dc Compacting 4@0 + 1@1 files
-2026/03/06-17:05:48.702 20111dc Generated table #263@0: 22 keys, 135051 bytes
-2026/03/06-17:05:48.703 20111dc Compacted 4@0 + 1@1 files => 135051 bytes
-2026/03/06-17:05:48.704 20111dc compacted to: files[ 0 1 0 0 0 0 0 ]
-2026/03/06-17:05:48.705 20111dc Delete type=2 #260
-2026/03/06-17:05:48.705 20111dc Delete type=2 #262
-2026/03/06-17:05:48.705 20111dc Delete type=2 #258
-2026/03/06-17:05:48.705 20111dc Delete type=2 #254
-2026/03/06-17:05:48.705 20111dc Delete type=2 #256
-2026/03/06-17:05:50.548 20111dc Level-0 table #265: started
-2026/03/06-17:05:50.555 20111dc Level-0 table #265: 45084 bytes OK
-2026/03/06-17:05:50.560 20111dc Delete type=0 #261
-2026/03/06-17:05:53.731 20111d9 Level-0 table #267: started
-2026/03/06-17:05:53.733 20111d9 Level-0 table #267: 45209 bytes OK
+2026/03/06-17:44:47.124 2019295 Reusing MANIFEST /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/MANIFEST-000001
+2026/03/06-17:44:47.125 2019295 Recovering log #299
+2026/03/06-17:44:47.126 2019295 Reusing old log /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/000299.log 
+2026/03/06-17:44:57.838 2019298 Level-0 table #304: started
+2026/03/06-17:44:57.853 2019298 Level-0 table #304: 45754 bytes OK
+2026/03/06-17:44:57.856 2019298 Delete type=0 #299
+2026/03/06-17:45:00.130 2019298 Level-0 table #306: started
+2026/03/06-17:45:00.134 2019298 Level-0 table #306: 45173 bytes OK
+2026/03/06-17:45:00.138 2019298 Delete type=0 #303

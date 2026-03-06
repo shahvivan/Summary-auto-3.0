@@ -1,0 +1,104 @@
+{
+  "runId": "0acf87f6-c2ea-4e34-a549-da5bb6e4112c",
+  "sessionId": "2026-03-06-accounting-i-bba-dbai-gbl-manual-1772812772789",
+  "courseKey": "accounting-i-bba-dbai-gbl",
+  "resolver": {
+    "selectedSectionId": "section-2",
+    "selectedSectionTitle": "Planning session 3 File",
+    "pdfLinks": [
+      {
+        "id": "resource-2-5",
+        "title": "SESSION 3. ACCOUNTING EQUIVALENCES. SLIDES File",
+        "url": "https://ecampus.esade.edu/mod/resource/view.php?id=5149849",
+        "type": "pdf",
+        "orderIndex": 4
+      }
+    ],
+    "debug": {
+      "allSections": [
+        {
+          "sectionId": "section-2",
+          "sectionTitle": "Planning session 3 File",
+          "score": 12.55,
+          "reasons": [
+            "academicMarker",
+            "topicExact",
+            "orderBoost:2.20",
+            "topicRecency:3",
+            "resourceDensity:3"
+          ],
+          "pdfCount": 3
+        },
+        {
+          "sectionId": "section-7",
+          "sectionTitle": "Planning session 3 File",
+          "score": 10.35,
+          "reasons": [
+            "academicMarker",
+            "topicExact",
+            "orderBoost:0.00",
+            "topicRecency:3",
+            "resourceDensity:3"
+          ],
+          "pdfCount": 3
+        }
+      ],
+      "overrideApplied": "automatic",
+      "confidenceScore": 1,
+      "selectedReason": "academicMarker, topicExact, orderBoost:2.20, topicRecency:3, resourceDensity:3",
+      "navigationSteps": [
+        "Opened Moodle base URL: https://ecampus.esade.edu/my/",
+        "Opened course URL: https://ecampus.esade.edu/course/view.php?id=44311",
+        "Navigated to topic tab 3 (URL: https://ecampus.esade.edu/course/view.php?id=44311&section=7#tabs-tree-start)",
+        "Clicked global Expand all button",
+        "Expanded 4 individual collapsible controls",
+        "Direct fetch returned HTML for \"Planning session 3 File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Planning session 3 File\": https://ecampus.esade.edu/pluginfile.php/187462087/mod_resource/content/12/25planning3.pdf",
+        "Downloaded via view page: \"Planning session 3 File\" (136 KB)",
+        "Direct fetch returned HTML for \"Assignment 4 File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Assignment 4 File\": https://ecampus.esade.edu/pluginfile.php/187602184/mod_resource/content/14/25%20Assignment%204%20%28",
+        "Downloaded via view page: \"Assignment 4 File\" (111 KB)",
+        "Direct fetch returned HTML for \"SESSION 3. ACCOUNTING EQUIVALENCES. SLIDES File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"SESSION 3. ACCOUNTING EQUIVALENCES. SLIDES File\": https://ecampus.esade.edu/pluginfile.php/187462132/mod_resource/content/6/24%20equivalences.pdf",
+        "Downloaded via view page: \"SESSION 3. ACCOUNTING EQUIVALENCES. SLIDES File\" (864 KB)",
+        "Direct fetch returned HTML for \"Planning session 3 File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Planning session 3 File\": https://ecampus.esade.edu/pluginfile.php/187462087/mod_resource/content/12/25planning3.pdf",
+        "Downloaded via view page: \"Planning session 3 File\" (136 KB)",
+        "Direct fetch returned HTML for \"Assignment 4 File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"Assignment 4 File\": https://ecampus.esade.edu/pluginfile.php/187602184/mod_resource/content/14/25%20Assignment%204%20%28",
+        "Downloaded via view page: \"Assignment 4 File\" (111 KB)",
+        "Direct fetch returned HTML for \"SESSION 3. ACCOUNTING EQUIVALENCES. SLIDES File\" — navigating view page to find real URL",
+        "Found pluginfile URL for \"SESSION 3. ACCOUNTING EQUIVALENCES. SLIDES File\": https://ecampus.esade.edu/pluginfile.php/187462132/mod_resource/content/6/24%20equivalences.pdf",
+        "Downloaded via view page: \"SESSION 3. ACCOUNTING EQUIVALENCES. SLIDES File\" (864 KB)"
+      ],
+      "domStats": {
+        "sectionCount": 2,
+        "resourceCount": 14,
+        "pdfResources": 6,
+        "pptResources": 0
+      },
+      "pdfFilterStats": {
+        "inputResources": 7,
+        "pdfResources": 1,
+        "pptResources": 0,
+        "selectedResources": 1
+      }
+    }
+  },
+  "providerTrace": {
+    "requestedProvider": "auto",
+    "finalProvider": "gemini",
+    "attempts": [
+      {
+        "provider": "gemini",
+        "ok": true
+      }
+    ]
+  },
+  "schemaValidationTrace": {
+    "attempts": 1,
+    "repairedAttempts": 0,
+    "providerPayloadErrors": []
+  },
+  "writtenAt": "2026-03-06T16:43:51.721Z"
+}
