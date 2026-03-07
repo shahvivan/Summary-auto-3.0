@@ -1,9 +1,6 @@
-2026/03/06-17:44:47.124 2019295 Reusing MANIFEST /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/MANIFEST-000001
-2026/03/06-17:44:47.125 2019295 Recovering log #299
-2026/03/06-17:44:47.126 2019295 Reusing old log /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/000299.log 
-2026/03/06-17:44:57.838 2019298 Level-0 table #304: started
-2026/03/06-17:44:57.853 2019298 Level-0 table #304: 45754 bytes OK
-2026/03/06-17:44:57.856 2019298 Delete type=0 #299
-2026/03/06-17:45:00.130 2019298 Level-0 table #306: started
-2026/03/06-17:45:00.134 2019298 Level-0 table #306: 45173 bytes OK
-2026/03/06-17:45:00.138 2019298 Delete type=0 #303
+2026/03/06-18:51:11.912 20294f0 Reusing MANIFEST /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/MANIFEST-000001
+2026/03/06-18:51:11.914 20294f0 Recovering log #311
+2026/03/06-18:51:11.915 20294f0 Reusing old log /Users/jignesh/Documents/Summary auto 3.0/data/storage/playwright-profile/Default/Session Storage/000311.log 
+2026/03/06-18:51:22.638 20294f3 Level-0 table #316: started
+2026/03/06-18:51:22.646 20294f3 Level-0 table #316: 45800 bytes OK
+2026/03/06-18:51:22.651 20294f3 Delete type=0 #311
